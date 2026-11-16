@@ -2,6 +2,8 @@
 
 Backend и frontend — независимые npm-проекты. Исходный состав зависимостей взят из SMM в кармане; Tailwind CSS добавлен отдельно по запросу. Наличие пакета не означает, что его функциональность уже подключена к приложению.
 
+Для совместного запуска в Docker используются `compose.yaml`, `backend/Dockerfile` и `frontend/Dockerfile`. Команды и ожидаемый результат описаны в [режиме локальных проверок](../local-development.md).
+
 ## Backend
 
 - Точка входа: `backend/src/main.ts`; стартовый модуль: `backend/src/app.module.ts`.
