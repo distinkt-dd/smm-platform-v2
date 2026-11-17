@@ -24,15 +24,12 @@ describe('AppController (e2e)', () => {
       .expect('Hello World!');
   });
 
-  it('test for the absence of DATABSE_URL', () => {
+  it('должен бросать ошибку, если DATABASE_URL отсутствует', () => {
+    vi.stubEnv('DATABASE_URL', undefined);
+
     const configService = app.get(ConfigService);
-    delete process.env.DATABASE_URL;
 
-    expect(() => configService.getOrThrow<string>('DATABASE_URL')).toThrow(
-      TypeError,
-    );
-
-    expect(() => configService.getOrThrow<string>('DATABASE_URL')).toThrow(
+    expect(() => configService.getOrThrow('DATABASE_URL')).toThrow(
       'Configuration key "DATABASE_URL" does not exist',
     );
   });

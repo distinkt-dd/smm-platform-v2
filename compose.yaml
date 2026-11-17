@@ -8,20 +8,22 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
     networks:
       - app-net
 
   postgres:
     image: postgres:17-alpine
     container_name: db
+    env_file: ./backend/.env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - '127.0.0.1:5433:5433'
+      - '127.0.0.1:5433:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/postgres_data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 10s
