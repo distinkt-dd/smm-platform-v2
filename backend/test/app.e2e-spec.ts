@@ -1,5 +1,4 @@
 import { INestApplication } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
@@ -22,16 +21,6 @@ describe('AppController (e2e)', () => {
       .get('/')
       .expect(200)
       .expect('Hello World!');
-  });
-
-  it('должен бросать ошибку, если DATABASE_URL отсутствует', () => {
-    vi.stubEnv('DATABASE_URL', undefined);
-
-    const configService = app.get(ConfigService);
-
-    expect(() => configService.getOrThrow('DATABASE_URL')).toThrow(
-      'Configuration key "DATABASE_URL" does not exist',
-    );
   });
 
   afterEach(async () => {

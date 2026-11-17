@@ -8,6 +8,5 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.spec.ts'],
-    unstubEnvs: true,
   },
 });
