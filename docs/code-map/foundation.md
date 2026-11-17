@@ -12,7 +12,7 @@ Backend и frontend — независимые npm-проекты. Исходн�
 - Nest CLI, TypeScript, NestJS, `@nestjs/config`, Express и Vitest; установлены также пакеты Prisma/PostgreSQL, авторизации, валидации, почты и обработки файлов из исходного проекта.
 - Из `backend`: `npm ci`, `npm run start:dev`, `npm run build`, `npm test`, `npm run test:e2e`, `npm exec --no -- prisma validate` (схема проверяется без запущенной БД и без `DATABASE_URL`).
 - `backend/.env.example` описывает локальное окружение. `ConfigModule` загружает `backend/.env` при запуске из каталога backend, а `backend/src/require-database-url.ts` проверяет наличие непустого `DATABASE_URL`; Prisma CLI загружает тот же файл через `backend/prisma.config.ts`. Команды Compose используют этот файл через `--env-file`.
-- Схема Prisma задана в `backend/prisma/schema.prisma`, конфигурация — в `backend/prisma.config.ts`; каталог генерации `backend/generated/prisma` исключён из Git. Подключение NestJS к базе, миграции, рабочие модели, авторизация и другие прикладные модули пока не настроены.
+- Схема Prisma задана в `backend/prisma/schema.prisma`, конфигурация — в `backend/prisma.config.ts`; каталог генерации `backend/generated/prisma` исключён из Git. Модель `User` хранится в таблице `users`; первая миграция находится в `backend/prisma/migrations`. Применение миграций: `npm exec --no -- prisma migrate deploy` из `backend` при доступной базе. Подключение NestJS к базе, авторизация и другие прикладные модули пока не настроены.
 
 ## Frontend
 
