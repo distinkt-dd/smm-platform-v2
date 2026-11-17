@@ -10,8 +10,8 @@ Backend и frontend — независимые npm-проекты. Исходн�
 
 - Точка входа: `backend/src/main.ts`; стартовый модуль: `backend/src/app.module.ts`.
 - Nest CLI, TypeScript, NestJS, Express и Vitest; установлены также пакеты Prisma/PostgreSQL, авторизации, валидации, почты и обработки файлов из исходного проекта.
-- Из `backend`: `npm ci`, `npm run start:dev`, `npm run build`, `npm test`, `npm run test:e2e`.
-- Схема Prisma, подключение к БД, авторизация и другие прикладные модули пока не настроены.
+- Из `backend`: `npm ci`, `npm run start:dev`, `npm run build`, `npm test`, `npm run test:e2e`, `npm exec --no -- prisma validate` (схема проверяется без запущенной БД и без `DATABASE_URL`).
+- Схема Prisma задана в `backend/prisma/schema.prisma`, конфигурация — в `backend/prisma.config.ts`; каталог генерации `backend/generated/prisma` исключён из Git. Подключение NestJS к базе, миграции, рабочие модели, авторизация и другие прикладные модули пока не настроены.
 
 ## Frontend
 
