@@ -46,7 +46,7 @@ describe('GET /health (e2e)', () => {
 
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(EnvConfig)
-      .useValue({ databaseUrl })
+      .useValue({ databaseUrl, jwtSecret: 'e2e-jwt-secret-value', })
       .compile();
 
     app = moduleRef.createNestApplication();

@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
 } from '@nestjs/common';
@@ -15,7 +14,20 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 export class AuthRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getExistingUser(email: string): Promise<TUserPrivate> {
+  async findPublicUserById(id: string): Promise<TUserPublic | null> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        createdAt: true,
+      },
+    });
+
+    return user;
+  }
+
+  async getExistingUser(email: string): Promise<TUserPrivate | null> {
     const user = await this.prismaService.user.findUnique({
       where: { email },
       select: {
@@ -25,10 +37,6 @@ export class AuthRepository {
         createdAt: true,
       },
     });
-
-    if (!user) {
-      throw new BadRequestException('Пользователь с таким email не найден!');
-    }
 
     return user;
   }

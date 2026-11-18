@@ -30,10 +30,13 @@ describe('AuthController', () => {
 
   const authService = {
     register: vi.fn(),
+    login: vi.fn(),
   };
+
 
   beforeEach(async () => {
     authService.register.mockReset();
+    authService.login.mockReset();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
@@ -46,6 +49,19 @@ describe('AuthController', () => {
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
+
+  it('передаёт данные входа в сервис и возвращает его результат', async () => {
+    const loginResponse = {
+      accessToken: 'test-token',
+      user: CREATED_USER
+    }
+
+    authService.login.mockResolvedValue(loginResponse);
+
+    const result = await controller.login(REGISTRATION);
+    expect(authService.login).toHaveBeenCalledWith(REGISTRATION);
+    expect(result).toEqual(loginResponse);
+  })
 
   it('передаёт dto в AuthService.register и возвращает его результат', async () => {
     authService.register.mockResolvedValue(CREATED_USER);

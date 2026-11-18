@@ -4,6 +4,11 @@ export type TUserPublic = {
   createdAt: Date;
 };
 
+export type TUserResponse = {
+  accessToken: string;
+  user: TUserPublic;
+}
+
 export type TUserPrivate = TUserPublic & { password: string };
 
 export type TUserForRelation = {

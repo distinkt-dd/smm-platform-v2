@@ -17,4 +17,5 @@ export class EnvConfig {
   get jwtSecret(): string {
     return this.configService.getOrThrow('JWT_SECRET');
   }
+
 }

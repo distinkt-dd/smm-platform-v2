@@ -5,6 +5,8 @@ import { TUserPublic } from '../../common/types/user.js';
 import { AuthService } from './auth.service.js';
 import { AuthRepository } from './repositories/auth.repository.js';
 
+import {TokenService} from '../token/token.service.js';
+
 /**
  * Что здесь проверяем.
  *
@@ -27,27 +29,84 @@ const CREATED_USER: TUserPublic = {
 describe('AuthService', () => {
   let service: AuthService;
 
+  const tokenService = {
+    generateAccessToken: vi.fn()
+  }
+
   // Мок репозитория — обычный объект с методом `registerUser`, который
   // возвращает не данные из базы, а то, что мы сами ему велим.
   const authRepository = {
     registerUser: vi.fn(),
+    getExistingUser: vi.fn(),
   };
 
   beforeEach(async () => {
     // Каждый тест начинается с «чистого» мока: иначе вызовы предыдущего теста
     // останутся в его истории и проверки начнут врать.
     authRepository.registerUser.mockReset();
+    tokenService.generateAccessToken.mockReset();
+    authRepository.getExistingUser.mockReset();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         // Подменяем настоящий AuthRepository на мок по его классу-токену.
         { provide: AuthRepository, useValue: authRepository },
+        { provide: TokenService, useValue: tokenService },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
   });
+
+  it('не выдаёт токен при неверном пароле', async () => {
+  const passwordHash = await argon2.hash('другой-пароль');
+
+  authRepository.getExistingUser.mockResolvedValue({
+    ...CREATED_USER,
+    password: passwordHash,
+  });
+
+  await expect(service.login(REGISTRATION)).rejects.toMatchObject({
+    status: 401,
+    message: 'Не правильный email или пароль!',
+  });
+
+  expect(tokenService.generateAccessToken).not.toHaveBeenCalled();
+});
+
+  it('Не выдает токен, если пользователь не найден', async () => {
+    authRepository.getExistingUser.mockResolvedValue(null);
+
+    await expect(service.login(REGISTRATION)).rejects.toMatchObject({
+      status: 401,
+      message: 'Не правильный email или пароль!',
+    });
+
+    expect(tokenService.generateAccessToken).not.toHaveBeenCalled();
+  });
+
+  it('При верном пароле возвращает токен и публичные поля пользователя', async () => {
+    const passwordHash = await argon2.hash(REGISTRATION.password);
+
+    authRepository.getExistingUser.mockResolvedValue({
+      ...CREATED_USER,
+      password: passwordHash,
+    })
+    tokenService.generateAccessToken.mockResolvedValue('test-token');
+
+    const result = await service.login(REGISTRATION);
+
+    expect(tokenService.generateAccessToken).toHaveBeenCalledWith({
+      id: CREATED_USER.id,
+      email: CREATED_USER.email,
+    });
+
+    expect(result).toEqual({
+      accessToken: 'test-token',
+      user: CREATED_USER,
+    });
+  })
 
   it('сохраняет пользователя и возвращает публичные поля', async () => {
     authRepository.registerUser.mockResolvedValue(CREATED_USER);
