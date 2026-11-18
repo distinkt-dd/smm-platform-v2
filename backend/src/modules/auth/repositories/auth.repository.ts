@@ -1,11 +1,37 @@
-import { ConflictException, Injectable } from '@nestjs/common';
-import { TUserForRelation, TUserPublic } from '../../../common/types/user.js';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
+import {
+  TUserForRelation,
+  TUserPrivate,
+  TUserPublic,
+} from '../../../common/types/user.js';
 import { Prisma } from '../../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
 @Injectable()
 export class AuthRepository {
   constructor(private readonly prismaService: PrismaService) {}
+
+  async getExistingUser(email: string): Promise<TUserPrivate> {
+    const user = await this.prismaService.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Пользователь с таким email не найден!');
+    }
+
+    return user;
+  }
 
   async registerUser(relationUser: TUserForRelation): Promise<TUserPublic> {
     try {
@@ -25,7 +51,9 @@ export class AuthRepository {
       });
     } catch (error) {
       if (this.isUniqueViolation(error)) {
-        throw new ConflictException('Пользователь с таким email уже существует!');
+        throw new ConflictException(
+          'Пользователь с таким email уже существует!',
+        );
       }
 
       throw error;

@@ -6,6 +6,9 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.e2e-spec.ts'],
+    // Выставляет корректные переменные до импорта AppModule: ConfigModule
+    // валидирует окружение раньше, чем тесты подменяют EnvConfig.
+    setupFiles: ['./test/support/env.ts'],
     // Кластер PostgreSQL инициализируется и останавливается дольше,
     // чем даёт стандартный таймаут хука.
     hookTimeout: 180_000,
