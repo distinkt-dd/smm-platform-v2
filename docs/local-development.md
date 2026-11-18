@@ -22,7 +22,15 @@ docker compose --env-file backend/.env exec db pg_isready -U postgres -d db_name
 
 Для последней команды подставь пользователя и базу из своего `.env`. Ожидаются статус `Up (healthy)` и сообщение `accepting connections`. Порт 5433 доступен только с локальной машины. Контейнер хранит данные в именованном томе: обычный `docker compose --env-file backend/.env down` удаляет контейнеры и сеть, но сохраняет том. Изменение `POSTGRES_*` не меняет существующую базу в томе автоматически.
 
-Backend проверяет наличие непустого `DATABASE_URL` при старте, но пока не подключается к базе. Модели, миграции и подключение NestJS — следующие задачи.
+Backend проверяет наличие непустого `DATABASE_URL` при старте, затем выполняет `SELECT 1`, чтобы убедиться, что база отвечает. Если база недоступна, backend всё равно стартует и пишет в лог `Database is unreachable at startup: PrismaClientKnownRequestError (P2010)`: проверочный `SELECT 1` падает, и Prisma оборачивает ошибку драйвера (`ECONNREFUSED`) в код P2010. Готовность базы в любой момент видна по `GET /health`.
+
+После старта backend проверь готовность базы:
+
+```powershell
+curl.exe -s -w "`n%{http_code}`n" http://localhost:3000/health
+```
+
+Ожидаемые ответы: `{"status":"ok","database":"up"}` с кодом `200` при работающей базе и `{"status":"error","database":"down"}` с кодом `503`, когда PostgreSQL остановлен.
 
 ## Проверки без Docker
 
@@ -48,6 +56,6 @@ docker compose --env-file backend/.env up -d --build
 docker compose --env-file backend/.env ps
 ```
 
-Backend и frontend должны иметь статус `Up`; если база запущена, её статус должен быть `Up (healthy)`. Backend доступен по адресу http://localhost:3000 и отвечает `Hello World!`. Frontend доступен по адресу http://localhost:8080 и показывает стартовую страницу со счётчиком.
+Backend и frontend должны иметь статус `Up`; если база запущена, её статус должен быть `Up (healthy)`. Backend доступен по адресу http://localhost:3000, готовность базы подтверждает `GET /health` (`200 {"status":"ok","database":"up"}`). Frontend доступен по адресу http://localhost:8080 и показывает стартовую страницу со счётчиком.
 
 Для проверки перезапуска выполни `docker compose --env-file backend/.env restart` и снова открой оба адреса. Для остановки и удаления контейнеров и сети Compose выполни `docker compose --env-file backend/.env down`. Собранные образы при этом сохраняются.

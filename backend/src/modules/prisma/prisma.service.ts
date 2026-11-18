@@ -22,6 +22,9 @@ export class PrismaService
       connectionString: envConfig.databaseUrl,
       ssl: false,
       max: 20,
+      // Без таймаута запрос к «повисшей» базе ждёт соединения бесконечно:
+      // HTTP-запрос не получает ответа, а `pool.end()` при остановке не завершается.
+      connectionTimeoutMillis: 5_000,
     });
 
     super({ adapter: new PrismaPg(pool) });
