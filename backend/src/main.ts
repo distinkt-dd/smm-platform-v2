@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 
+import { ValidationPipe } from '@nestjs/common';
 import { EnvConfig } from './common/configurations/env/env.service.js';
 import { requireDatabaseUrl } from './require-database-url.js';
 
@@ -9,6 +10,7 @@ async function bootstrap() {
   const envService = app.get(EnvConfig);
   requireDatabaseUrl(envService.databaseUrl);
 
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.enableShutdownHooks();
   await app.listen(process.env.PORT ?? 3000);
 }
