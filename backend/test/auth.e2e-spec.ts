@@ -12,6 +12,8 @@ import { AppModule } from '../src/app.module.js';
 import { EnvConfig } from '../src/common/configurations/env/env.service.js';
 import { PrismaService } from '../src/modules/prisma/prisma.service.js';
 import { findFreePort } from './support/free-port.js';
+import { JwtService } from '@nestjs/jwt';
+import { corsOptions } from '../src/common/configurations/env/cors.js';
 
 /**
  * Что здесь проверяем.
@@ -29,6 +31,7 @@ const REGISTER_PATH = '/auth/register';
 
 const POSTGRES_USER = 'postgres';
 const POSTGRES_PASSWORD = 'password';
+const JWT_SECRET = 'test-secret';
 
 const BACKEND_ROOT = join(
   fileURLToPath(new URL('.', import.meta.url)),
@@ -89,10 +92,11 @@ describe('POST /auth/register (e2e)', () => {
 
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(EnvConfig)
-      .useValue({ databaseUrl })
+      .useValue({ databaseUrl, jwtSecret: JWT_SECRET })
       .compile();
 
     app = moduleRef.createNestApplication();
+    app.enableCors(corsOptions);
 
     // Та же настройка, что в backend/src/main.ts: иначе e2e проверял бы
     // приложение без валидации и пропускал бы «лишние» поля.
@@ -111,6 +115,63 @@ describe('POST /auth/register (e2e)', () => {
       await postgres.stop();
     }
   }, 60_000);
+
+
+  it('регистрирует пользователя и выполняет вход', async () => {
+  const email = uniqueEmail();
+  const credentials = { email, password: 'password123' };
+
+  // Сначала создаём пользователя в тестовой базе.
+  const registration = await request(app.getHttpServer())
+    .post('/auth/register')
+    .send(credentials)
+    .expect(201);
+
+  // Затем входим с теми же данными.
+  const login = await request(app.getHttpServer())
+    .post('/auth/login')
+    .send(credentials)
+    .expect(200);
+
+
+  const me = await request(app.getHttpServer())
+    .get('/auth/me')
+    .set('Authorization', `Bearer ${login.body.accessToken}`)
+    .expect(200);
+
+  expect(me.body).toEqual(registration.body);
+
+  expect(login.body).toEqual({
+    accessToken: expect.any(String),
+    user: registration.body,
+  });
+});
+
+  it.each([
+  'http://localhost:5173',
+  'http://localhost:8080',
+    ])('разрешает запросы от %s', async (origin) => {
+      const response = await request(app.getHttpServer())
+        .options('/auth/me')
+        .set('Origin', origin)
+        .set('Access-Control-Request-Method', 'GET')
+        .set('Access-Control-Request-Headers', 'authorization')
+        .expect(204);
+
+      expect(response.headers['access-control-allow-origin']).toBe(origin);
+      expect(response.headers['access-control-allow-headers'])
+        .toContain('Authorization');
+    });
+
+  it('не разрешает браузерный запрос от чужого origin', async () => {
+  const response = await request(app.getHttpServer())
+    .options('/auth/me')
+    .set('Origin', 'http://example.com')
+    .set('Access-Control-Request-Method', 'GET')
+    .set('Access-Control-Request-Headers', 'authorization');
+
+  expect(response.headers['access-control-allow-origin']).toBeUndefined();
+});
 
   it('отвечает 201 и отдаёт пользователя без пароля', async () => {
     const email = uniqueEmail();
@@ -232,4 +293,69 @@ describe('POST /auth/register (e2e)', () => {
     expect(statuses).toEqual([201, 409, 409, 409, 409]);
     expect(await prisma.user.count({ where: { email } })).toBe(1);
   });
+
+  it('не открывает /auth/me без токена', async () => {
+  await request(app.getHttpServer())
+    .get('/auth/me')
+    .expect(401);
+  });
+
+  it('не открывает /auth/me с неверной подписью', async () => {
+    const jwt = new JwtService();
+
+    const email = uniqueEmail();
+
+    const registration = await request(app.getHttpServer())
+    .post('/auth/register')
+    .send({ email, password: 'password123' })
+    .expect(201);
+
+    const token = await jwt.signAsync(
+      { sub: registration.body.id, email },
+      { secret: 'different-test-secret', expiresIn: '1h' },
+    );
+
+    await request(app.getHttpServer())
+      .get('/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(401);
+    });
+
+
+  it('не открывает /auth/me с просроченным токеном', async () => {
+    const email = uniqueEmail();
+
+    const registration = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({ email, password: 'password123' })
+      .expect(201);
+
+    const jwt = new JwtService();
+    const token = await jwt.signAsync(
+      { sub: registration.body.id, email },
+      { secret: JWT_SECRET, expiresIn: -60 },
+    );
+
+    await request(app.getHttpServer())
+      .get('/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(401);
+  });
+  
+  it('не выполняет вход с неверным паролем', async () => {
+    const email = uniqueEmail();
+
+    await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({ email, password: 'password123' })
+      .expect(201);
+
+    const response = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email, password: 'wrong-password' })
+      .expect(401);
+
+    expect(response.body).not.toHaveProperty('accessToken');
+  });
+
 });

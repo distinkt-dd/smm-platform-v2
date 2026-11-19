@@ -1,15 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import type { Env } from './env.validation.js';
 
 @Injectable()
 export class EnvConfig {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService<Env, true>) {}
 
-  get databaseUrl(): string | undefined {
-    return this.configService.get<string>('DATABASE_URL');
+  get databaseUrl(): string {
+    return this.configService.getOrThrow('DATABASE_URL');
   }
 
-  get appPort(): number | undefined {
-    return this.configService.get<number>('PORT');
+  get appPort(): number {
+    return this.configService.getOrThrow('PORT');
   }
+
+  get jwtSecret(): string {
+    return this.configService.getOrThrow('JWT_SECRET');
+  }
+
 }
