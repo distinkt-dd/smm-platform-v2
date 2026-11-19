@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="SMM в кармане">
+	<title>SMM в кармане</title>
+	<!--
+		Знак приложения: карман с прорезью.
+		Тело — акцент #f07836, прорезь — основной текст #20211f (docs/design-system.md).
+		Для тёмной палитры прорезь перекрашивается в #f5eee5.
+		Композиция «знак + название» в шапке: знак 28 px, отступ 10 px, название в font-sans.
+	-->
+	<path fill="#f07836" d="M20 8h24a10 10 0 0 1 10 10v20a18 18 0 0 1-18 18H28a18 18 0 0 1-18-18V18A10 10 0 0 1 20 8Z"/>
+	<path fill="none" stroke="#20211f" stroke-width="4.5" stroke-linecap="round" d="M20 22a14 14 0 0 0 24 0"/>
+</svg>

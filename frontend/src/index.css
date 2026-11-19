@@ -1,113 +1,105 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+/*
+ * Базовые токены дизайн-системы: docs/design-system.md.
+ * Значения берутся из документации; новый цвет или размер сначала
+ * добавляется в дизайн-систему, затем сюда.
+ *
+ * Готовые утилиты: bg-surface, bg-surface-muted, text-ink, text-ink-muted,
+ * border-line, bg-accent, text-accent-ink, text-link, outline-focus,
+ * rounded-control, rounded-panel, rounded-state, shadow-raised,
+ * font-sans, w-nav, w-preview, max-phone:*.
+ */
+@theme {
+	--font-sans: 'Segoe UI', Arial, sans-serif;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+	--color-surface: #ffffff;
+	--color-surface-muted: #f6f6f3;
+	--color-ink: #20211f;
+	--color-ink-muted: #686b65;
+	--color-line: #e3e4df;
+	--color-accent: #f07836;
+	--color-accent-ink: #27170e;
+	--color-link: #a54717;
+	--color-focus: #b64b15;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+	--radius-control: 9px;
+	--radius-panel: 12px;
+	--radius-state: 5px;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+	--shadow-raised: 0 4px 16px rgb(32 33 31 / 0.04);
+
+	--text-caption: 13px;
+	--text-caption--line-height: 1.5;
+	--text-label: 12px;
+	--text-label--line-height: 1.5;
+
+	--breakpoint-phone: 760px;
+	--spacing-nav: 220px;
+	--spacing-preview: 360px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+@layer base {
+	html {
+		color-scheme: light;
+	}
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
+	body {
+		background: var(--color-surface);
+		color: var(--color-ink);
+		font-family: var(--font-sans);
+		font-size: 15px;
+		line-height: 1.5;
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
 
-body {
-  margin: 0;
-}
+	h1 {
+		font-size: 40px;
+		font-weight: 700;
+		line-height: 1.15;
+		letter-spacing: -1px;
+	}
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
+	h2 {
+		font-size: 28px;
+		font-weight: 700;
+		line-height: 1.25;
+		letter-spacing: -0.5px;
+	}
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
+	:where(
+		a,
+		button,
+		input,
+		select,
+		textarea,
+		summary,
+		[tabindex]
+	):focus-visible {
+		outline: 3px solid var(--color-focus);
+		outline-offset: 3px;
+	}
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
+	@media (width < 760px) {
+		body {
+			font-size: 14px;
+		}
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+		h1 {
+			font-size: 31px;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		::before,
+		::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			scroll-behavior: auto !important;
+			transition-duration: 0.01ms !important;
+		}
+	}
 }
