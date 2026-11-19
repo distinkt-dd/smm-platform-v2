@@ -33,7 +33,7 @@ Backend и frontend — независимые npm-проекты. Исходн�
 
 - Точка входа: `frontend/src/main.tsx`; стартовый компонент: `frontend/src/App.tsx`; маршрут `/` ведёт на `HomePage` из `frontend/src/pages`.
 - Слои FSD сверху вниз: `pages` → `widgets` → `shared`; импорт допустим только вниз. Страницы лежат в `frontend/src/pages`, общие layouts (`AuthLayout`, `MainLayout`) — в `frontend/src/pages/layouts`, самостоятельные блоки интерфейса — в `frontend/src/widgets`.
-- Каркас страниц: `MainLayout` держит общую шапку `Header` из `frontend/src/widgets/header` (логотип и ссылки на вход и регистрацию, активный маршрут выделен через `NavLink`) и слот `<main>`; `AuthLayout` вложен в него и сужает колонку форм до `max-w-preview`. Шапка выводится на всех страницах внутри `MainLayout`.
+- Каркас страниц: `MainLayout` держит общую шапку `Header` из `frontend/src/widgets/header` (логотип и ссылки на вход и регистрацию, активный маршрут выделен через `NavLink`) и слот `<main>`; `AuthLayout` вложен в него и сужает колонку форм до `max-w-preview`. Маршрут `*` тоже вложен в `MainLayout`, поэтому страница 404 показывается в общем каркасе с шапкой.
 - React, TypeScript, Vite и Tailwind CSS через `@tailwindcss/vite`; также установлены Redux Toolkit, React Router и инструменты тестирования из исходного проекта.
 - Базовые стили и токены дизайн-системы: `frontend/src/index.css` (`@theme` Tailwind CSS v4); отдельного `App.css` нет. Состав токенов и утилит описан в [дизайн-системе](../design-system.md#токены-в-коде).
 - Из `frontend`: `npm ci`, `npm run dev`, `npm run build`, `npm run lint`.
