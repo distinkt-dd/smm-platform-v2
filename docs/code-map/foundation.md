@@ -13,6 +13,7 @@ Backend и frontend — независимые npm-проекты. Исходн�
 - Из `backend`: `npm ci`, `npm run start:dev`, `npm run build`, `npm test`, `npm run test:e2e`, `npm exec --no -- prisma validate` (схема проверяется без запущенной БД и без `DATABASE_URL`).
 - `backend/.env.example` описывает локальное окружение. `ConfigModule` загружает `backend/.env` при запуске из каталога backend, а `backend/src/require-database-url.ts` проверяет наличие непустого `DATABASE_URL`; Prisma CLI загружает тот же файл через `backend/prisma.config.ts`. Команды Compose используют этот файл через `--env-file`.
 - Схема Prisma задана в `backend/prisma/schema.prisma`, конфигурация — в `backend/prisma.config.ts`; каталог генерации `backend/src/generated/prisma` исключён из Git. Модель `User` хранится в таблице `users`; первая миграция находится в `backend/prisma/migrations`. Применение миграций: `npm exec --no -- prisma migrate deploy` из `backend` при доступной базе. Доступны регистрация, вход с access-токеном и защищённый маршрут текущего пользователя.
+- `MasterProfile` связан с `User` один-к-одному; `Service` и `ConfirmedFact` принадлежат профилю и каскадно удаляются вместе с ним. Схема и миграция находятся в `backend/prisma/schema.prisma` и `backend/prisma/migrations`; API профиля пока не реализован. Проверки: `prisma validate` без `DATABASE_URL`, `prisma generate`, `npm run build`, `prisma migrate deploy` на чистой базе и проверка каскадного удаления.
 
 ### Модули backend
 
