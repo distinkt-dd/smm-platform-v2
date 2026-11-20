@@ -13,10 +13,64 @@ model User {
   email String @unique
   password String 
 
+  masterProfile MasterProfile?
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("users")
 }
+
+model MasterProfile {
+  id String @id @default(uuid())
+  
+  userId String @unique @map("user_id")
+  user User @relation(fields: [userId], references: [id])
+
+  services Service[]
+  confirmedFacts ConfirmedFact[]
+
+  displayName String @map("display_name")
+  specialization String
+  about String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("master_profiles")
+}
+
+model Service {
+  id String @id @default(uuid())
+  
+  title String
+  description String?
+
+  masterProfileId String @map("master_profile_id")
+  masterProfile MasterProfile @relation(fields: [masterProfileId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+
+  @@map("services")
+}
+
+model ConfirmedFact {
+  id String @id @default(uuid())
+  
+  text String
+
+  masterProfileId String @map("master_profile_id")
+  masterProfile MasterProfile @relation(fields: [masterProfileId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+
+  @@map("confirmed_facts")
+}
+
+
 
 
