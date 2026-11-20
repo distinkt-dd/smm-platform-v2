@@ -13,7 +13,7 @@ model User {
   email String @unique
   password String 
 
-  masterProfiles MasterProfile[]
+  masterProfile MasterProfile?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -27,11 +27,8 @@ model MasterProfile {
   userId String @unique @map("user_id")
   user User @relation(fields: [userId], references: [id])
 
-  serviceId String @map("service_id")
-  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-
-  confirmedFactId String @map("confirmed_fact_id")
-  confirmedFact ConfirmedFact? @relation(fields: [confirmedFactId], references: [id], onDelete: Cascade)
+  services Service[]
+  confirmedFacts ConfirmedFact[]
 
   displayName String @map("display_name")
   specialization String
@@ -49,10 +46,12 @@ model Service {
   title String
   description String?
 
+  masterProfileId String @map("master_profile_id")
+  masterProfile MasterProfile @relation(fields: [masterProfileId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  masterProfiles MasterProfile[]
 
   @@map("services")
 }
@@ -62,10 +61,12 @@ model ConfirmedFact {
   
   text String
 
+  masterProfileId String @map("master_profile_id")
+  masterProfile MasterProfile @relation(fields: [masterProfileId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   
-  masterProfiles MasterProfile[]
 
   @@map("confirmed_facts")
 }
