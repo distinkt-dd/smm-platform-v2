@@ -8,6 +8,7 @@ import { HealthModule } from './modules/health/health.module.js';
 import { PrismaModule } from './modules/prisma/prisma.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { TokenModule } from './modules/token/token.module.js';
+import { ProfileModule } from './modules/profile/profile.module.js';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { TokenModule } from './modules/token/token.module.js';
     EnvModule,
     AuthModule,
     TokenModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

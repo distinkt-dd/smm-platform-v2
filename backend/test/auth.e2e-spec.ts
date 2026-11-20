@@ -82,6 +82,7 @@ describe('POST /auth/register (e2e)', () => {
       user: POSTGRES_USER,
       password: POSTGRES_PASSWORD,
       persistent: false,
+      initdbFlags: ['--encoding=UTF8', '--locale=C'],
       onLog: () => {},
       onError: (message) => console.error(message),
     });
@@ -118,34 +119,34 @@ describe('POST /auth/register (e2e)', () => {
 
 
   it('регистрирует пользователя и выполняет вход', async () => {
-  const email = uniqueEmail();
-  const credentials = { email, password: 'password123' };
+    const email = uniqueEmail();
+    const credentials = { email, password: 'password123' };
 
-  // Сначала создаём пользователя в тестовой базе.
-  const registration = await request(app.getHttpServer())
-    .post('/auth/register')
-    .send(credentials)
-    .expect(201);
+    // Сначала создаём пользователя в тестовой базе.
+    const registration = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send(credentials)
+      .expect(201);
 
-  // Затем входим с теми же данными.
-  const login = await request(app.getHttpServer())
-    .post('/auth/login')
-    .send(credentials)
-    .expect(200);
+    // Затем входим с теми же данными.
+    const login = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send(credentials)
+      .expect(200);
 
 
-  const me = await request(app.getHttpServer())
-    .get('/auth/me')
-    .set('Authorization', `Bearer ${login.body.accessToken}`)
-    .expect(200);
+    const me = await request(app.getHttpServer())
+      .get('/auth/me')
+      .set('Authorization', `Bearer ${login.body.accessToken}`)
+      .expect(200);
 
-  expect(me.body).toEqual(registration.body);
+    expect(me.body).toEqual(registration.body);
 
-  expect(login.body).toEqual({
-    accessToken: expect.any(String),
-    user: registration.body,
+    expect(login.body).toEqual({
+      accessToken: expect.any(String),
+      user: registration.body,
+    });
   });
-});
 
   it.each([
   'http://localhost:5173',
@@ -356,6 +357,138 @@ describe('POST /auth/register (e2e)', () => {
       .expect(401);
 
     expect(response.body).not.toHaveProperty('accessToken');
+  });
+
+  it('не открывает профиль без токена', async() => {
+    await request(app.getHttpServer())
+      .get('/me/profile')
+      .expect(401)
+  })
+
+  it("создаёт профиль текущего пользователя", async() => {
+    const credentials = {
+      email: uniqueEmail(),
+      password: 'password123'
+    }
+
+    await request(app.getHttpServer())
+      .post('/auth/register')
+      .send(credentials)
+      .expect(201);
+
+    const login = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send(credentials)
+      .expect(200);
+    
+    const profile = {
+      displayName: 'Анна',
+      specialization: 'Парикмахер',
+      about: 'Работаю с женскими стрижками'
+    }
+
+    const response = await request(app.getHttpServer())
+      .put('/me/profile')
+      .set('Authorization', `Bearer ${login.body.accessToken}`)
+      .send(profile)
+      .expect(200)
+
+    expect(response.body).toMatchObject({
+      ...profile,
+      services: [],
+      confirmedFacts: []
+    })
+
+    expect(response.body.id).toEqual(expect.any(String))
+  })
+
+  // Каждый сценарий получает отдельного пользователя и работает с реальной БД.
+  async function registerAndLogin() {
+    const credentials = { email: uniqueEmail(), password: 'password123' };
+    const registration = await request(app.getHttpServer())
+      .post('/auth/register').send(credentials).expect(201);
+    const login = await request(app.getHttpServer())
+      .post('/auth/login').send(credentials).expect(200);
+    return { userId: registration.body.id as string, token: login.body.accessToken as string };
+  }
+
+  const profileData = {
+    displayName: 'Анна',
+    specialization: 'Парикмахер',
+    about: 'Работаю с женскими стрижками',
+  };
+
+  it('читает профиль и обновляет существующую запись', async () => {
+    const { userId, token } = await registerAndLogin();
+    const auth = `Bearer ${token}`;
+    await request(app.getHttpServer()).get('/me/profile')
+      .set('Authorization', auth).expect(404);
+    const created = await request(app.getHttpServer()).put('/me/profile')
+      .set('Authorization', auth).send(profileData).expect(200);
+    const updatedData = { displayName: 'Анна Петрова', specialization: 'Стилист', about: 'Помогаю подобрать новый образ' };
+    const updated = await request(app.getHttpServer()).put('/me/profile')
+      .set('Authorization', auth).send(updatedData).expect(200);
+    expect(updated.body).toMatchObject({ id: created.body.id, ...updatedData, services: [], confirmedFacts: [] });
+    const fetched = await request(app.getHttpServer()).get('/me/profile')
+      .set('Authorization', auth).expect(200);
+    expect(fetched.body).toMatchObject({ id: created.body.id, ...updatedData, services: [], confirmedFacts: [] });
+    expect(await prisma.masterProfile.count({ where: { userId } })).toBe(1);
+  });
+
+  it('отклоняет PUT без токена и неверные данные', async () => {
+    await request(app.getHttpServer()).put('/me/profile').send(profileData).expect(401);
+    const { token } = await registerAndLogin();
+    for (const invalid of [
+      { specialization: 'Стилист' },
+      { ...profileData, displayName: 'А' },
+      { ...profileData, specialization: 123 },
+    ]) {
+      await request(app.getHttpServer()).put('/me/profile')
+        .set('Authorization', `Bearer ${token}`).send(invalid).expect(400);
+    }
+  });
+
+  it('изолирует профили и игнорирует чужой userId в теле', async () => {
+    const first = await registerAndLogin();
+    const second = await registerAndLogin();
+    const secondData = { displayName: 'Мария', specialization: 'Визажист' };
+    const secondProfile = await request(app.getHttpServer()).put('/me/profile')
+      .set('Authorization', `Bearer ${second.token}`).send(secondData).expect(200);
+    const firstProfile = await request(app.getHttpServer()).put('/me/profile')
+      .set('Authorization', `Bearer ${first.token}`)
+      .send({ ...profileData, userId: second.userId }).expect(200);
+    expect(firstProfile.body).toMatchObject(profileData);
+    expect(firstProfile.body.id).not.toBe(secondProfile.body.id);
+    const firstGet = await request(app.getHttpServer()).get('/me/profile')
+      .set('Authorization', `Bearer ${first.token}`).expect(200);
+    const secondGet = await request(app.getHttpServer()).get('/me/profile')
+      .set('Authorization', `Bearer ${second.token}`).expect(200);
+    expect(firstGet.body).toMatchObject({ id: firstProfile.body.id, ...profileData });
+    expect(secondGet.body).toMatchObject({ id: secondProfile.body.id, ...secondData });
+    expect((await prisma.masterProfile.findUnique({ where: { userId: first.userId } }))?.id).toBe(firstProfile.body.id);
+  });
+
+  it('возвращает услуги и факты профиля', async () => {
+    const { token } = await registerAndLogin();
+    const created = await request(app.getHttpServer()).put('/me/profile')
+      .set('Authorization', `Bearer ${token}`).send(profileData).expect(200);
+    await prisma.service.create({ data: { masterProfileId: created.body.id, title: 'Стрижка' } });
+    await prisma.confirmedFact.create({ data: { masterProfileId: created.body.id, text: 'Опыт работы пять лет' } });
+    const fetched = await request(app.getHttpServer()).get('/me/profile')
+      .set('Authorization', `Bearer ${token}`).expect(200);
+    expect(fetched.body.services).toEqual([expect.objectContaining({ title: 'Стрижка' })]);
+    expect(fetched.body.confirmedFacts).toEqual([expect.objectContaining({ text: 'Опыт работы пять лет' })]);
+  });
+
+  it('создаёт один профиль при параллельных первых PUT', async () => {
+    const { userId, token } = await registerAndLogin();
+    const responses = await Promise.all(Array.from({ length: 10 }, () =>
+      request(app.getHttpServer()).put('/me/profile')
+        .set('Authorization', `Bearer ${token}`).send(profileData),
+    ));
+    expect(responses.map((response) => response.status)).toEqual(Array(10).fill(200));
+    expect(new Set(responses.map((response) => response.body.id)).size).toBe(1);
+    expect(await prisma.masterProfile.count({ where: { userId } })).toBe(1);
   });
 
 });
