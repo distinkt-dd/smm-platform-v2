@@ -20,3 +20,32 @@ it("restores a session, enters the home page and exits to login", async () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Войти" })).toBeTruthy());
     expect(fetchMock.mock.calls[1][0]).toBe("http://localhost:3000/auth/logout");
 });
+
+
+it("redirects after a protected request expires and keeps login errors separate", async () => {
+    vi.stubEnv("VITE_API_URL", "http://localhost:3000");
+    const user = { id: "1", email: "user@example.com", createdAt: "2026-11-23T00:00:00.000Z" };
+    vi.stubGlobal("fetch", vi.fn()
+        .mockResolvedValueOnce(Response.json(user))
+        .mockResolvedValueOnce(Response.json({ message: "Unauthorized" }, { status: 401 }))
+        .mockResolvedValueOnce(Response.json({ message: "Unauthorized" }, { status: 401 })));
+    const store = createAppStore();
+    render(<Provider store={store}><MemoryRouter initialEntries={["/"]}><App /></MemoryRouter></Provider>);
+    await screen.findByRole("heading", { name: "Главная" });
+    const { apiRequest } = await import("../src/shared/api/api");
+    await expect(apiRequest("/me/profile")).rejects.toMatchObject({ status: 401 });
+    expect(await screen.findByText("Сессия недействительна или истекла. Войдите снова.")).toBeTruthy();
+    expect(store.getState().auth.user).toBeNull();
+    fireEvent.change(screen.getByLabelText("Электронная почта"), { target: { value: user.email } });
+    fireEvent.change(screen.getByLabelText("Пароль"), { target: { value: "password123" } });
+    fireEvent.click(screen.getByRole("button", { name: "Войти" }));
+    expect((await screen.findByRole("alert")).textContent).toBe("Неверная почта или пароль.");
+    expect(screen.queryByText("Сессия недействительна или истекла. Войдите снова.")).toBeNull();
+});
+
+it("shows a session message when restoration returns 401", async () => {
+    vi.stubEnv("VITE_API_URL", "http://localhost:3000");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ message: "Unauthorized" }, { status: 401 })));
+    render(<Provider store={createAppStore()}><MemoryRouter initialEntries={["/"]}><App /></MemoryRouter></Provider>);
+    expect(await screen.findByText("Сессия недействительна или истекла. Войдите снова.")).toBeTruthy();
+});

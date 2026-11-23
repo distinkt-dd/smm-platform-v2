@@ -9,6 +9,7 @@ export type JsonValue =
 export type ApiRequestOptions = Omit<RequestInit, "body"> & {
     body?: JsonValue;
     token?: string;
+    protected?: boolean;
 };
 
 export class ApiHttpError extends Error {
@@ -51,6 +52,18 @@ function getErrorMessages(body: unknown): string[] {
     return [];
 }
 
+let sessionVersion = 0;
+let onSessionExpired: (() => void) | undefined;
+
+// Requests from an older session cannot invalidate a newer login.
+export function advanceSessionVersion(): void {
+    sessionVersion += 1;
+}
+export function setSessionExpiredHandler(handler: () => void): void {
+    advanceSessionVersion();
+    onSessionExpired = handler;
+}
+
 export async function apiRequest<T>(
     path: string,
     options: ApiRequestOptions = {},
@@ -58,7 +71,14 @@ export async function apiRequest<T>(
     const baseUrl = import.meta.env.VITE_API_URL;
     if (!baseUrl) throw new Error("Не задан VITE_API_URL");
 
-    const { body, token, headers: inputHeaders, ...requestOptions } = options;
+    const {
+        body,
+        token,
+        protected: isProtected = true,
+        headers: inputHeaders,
+        ...requestOptions
+    } = options;
+    const requestSessionVersion = sessionVersion;
     const headers = new Headers(inputHeaders);
     if (body !== undefined && !headers.has("Content-Type"))
         headers.set("Content-Type", "application/json");
@@ -93,6 +113,15 @@ export async function apiRequest<T>(
             errorBody = JSON.parse(text);
         } catch {
             errorBody = undefined;
+        }
+        if (
+            response.status === 401 &&
+            isProtected &&
+            requestSessionVersion === sessionVersion &&
+            onSessionExpired
+        ) {
+            advanceSessionVersion();
+            onSessionExpired();
         }
         throw new ApiHttpError(response.status, getErrorMessages(errorBody));
     }

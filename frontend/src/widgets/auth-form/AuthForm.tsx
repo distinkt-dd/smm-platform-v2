@@ -15,6 +15,7 @@ export const AuthForm = ({ mode }: { mode: "login" | "register" }) => {
     const [values, setValues] = useState({ email: "", password: "" });
     const dispatch = useAppDispatch();
     const request = useAppSelector((state) => state.auth.requests[mode]);
+    const sessionExpired = useAppSelector((state) => state.auth.sessionExpired);
     const isLogin = mode === "login";
     const pending = request.status === "pending";
     const errors =
@@ -24,7 +25,11 @@ export const AuthForm = ({ mode }: { mode: "login" | "register" }) => {
             ? errors[""] || ""
             : request.error?.kind === "unknown"
               ? "Не удалось выполнить запрос. Попробуйте позже."
-              : request.error?.message || "";
+              : isLogin &&
+                  request.error?.kind === "http" &&
+                  request.error.status === 401
+                ? "Неверная почта или пароль."
+                : request.error?.message || "";
     const notice =
         request.status === "fulfilled"
             ? isLogin
@@ -55,6 +60,11 @@ export const AuthForm = ({ mode }: { mode: "login" | "register" }) => {
             noValidate
             aria-invalid={formError ? true : undefined}
         >
+            {isLogin && sessionExpired && (
+                <p role="status" className="text-caption text-ink-muted">
+                    Сессия недействительна или истекла. Войдите снова.
+                </p>
+            )}
             <Input
                 label="Электронная почта"
                 name="email"

@@ -21,6 +21,7 @@ const initialRequest = (): RequestState => ({
 });
 export const createInitialAuthState = () => ({
     user: null as AuthUser | null,
+    sessionExpired: false,
     requests: {
         login: initialRequest(),
         register: initialRequest(),
@@ -33,6 +34,11 @@ const authSlice = createSlice({
     name: "auth",
     initialState: createInitialAuthState(),
     reducers: {
+        expireSession(state) {
+            state.user = null;
+            state.sessionExpired = true;
+            state.requests.me = initialRequest();
+        },
         clearAuthFeedback(
             state,
             action: PayloadAction<{ operation: Operation; field?: string }>,
@@ -77,6 +83,7 @@ const authSlice = createSlice({
                 };
             })
             .addCase(loginThunk.pending, (state, action) => {
+                state.sessionExpired = false;
                 state.requests.login = {
                     status: "pending",
                     error: null,
@@ -87,6 +94,7 @@ const authSlice = createSlice({
                 if (state.requests.login.requestId !== action.meta.requestId)
                     return;
                 state.user = action.payload.user;
+                state.sessionExpired = false;
                 state.requests.login = {
                     status: "fulfilled",
                     error: null,
@@ -150,6 +158,7 @@ const authSlice = createSlice({
                 if (state.requests.logout.requestId !== action.meta.requestId)
                     return;
                 state.user = null;
+                state.sessionExpired = false;
                 state.requests.logout = {
                     status: "fulfilled",
                     error: null,
@@ -172,5 +181,5 @@ const authSlice = createSlice({
             });
     },
 });
-export const { clearAuthFeedback } = authSlice.actions;
+export const { clearAuthFeedback, expireSession } = authSlice.actions;
 export const authReducer = authSlice.reducer;

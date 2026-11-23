@@ -23,6 +23,7 @@ export async function register(
     return requireResponse(
         apiRequest<RegisterResponse>(AUTH_REGISTER, {
             method: "POST",
+            protected: false,
             body: result.data,
         }),
     );
@@ -34,6 +35,7 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
     return requireResponse(
         apiRequest<LoginResponse>(AUTH_LOGIN, {
             method: "POST",
+            protected: false,
             body: result.data,
         }),
     );
@@ -48,5 +50,5 @@ export function me(): Promise<MeResponse> {
 }
 
 export async function logout(): Promise<void> {
-    await apiRequest(AUTH_LOGOUT, { method: "POST" });
+    await apiRequest(AUTH_LOGOUT, { method: "POST", protected: false });
 }

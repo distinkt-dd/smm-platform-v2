@@ -10,6 +10,7 @@ export type { AuthRequestError } from "./model/thunks/auth-thunks";
 export {
     authReducer,
     clearAuthFeedback,
+    expireSession,
     createInitialAuthState,
 } from "./model/auth-slice";
 export type {

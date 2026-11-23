@@ -46,3 +46,19 @@ describe("auth thunks", () => {
         await expect(store.dispatch(registerThunk(credentials)).unwrap()).rejects.toMatchObject({ kind: "network" });
     });
 });
+
+
+it("ignores a protected 401 from before a successful login", async () => {
+    vi.stubEnv("VITE_API_URL", "http://localhost:3000");
+    let finish!: (response: Response) => void;
+    const oldResponse = new Promise<Response>((resolve) => { finish = resolve; });
+    vi.stubGlobal("fetch", vi.fn().mockReturnValueOnce(oldResponse).mockResolvedValueOnce(Response.json({ user })));
+    const store = createAppStore({ restoreSession: false });
+    const { apiRequest } = await import("../src/shared/api/api");
+    const oldRequest = apiRequest("/me/profile");
+    await store.dispatch(loginThunk(credentials)).unwrap();
+    finish(Response.json({ message: "Unauthorized" }, { status: 401 }));
+    await expect(oldRequest).rejects.toMatchObject({ status: 401 });
+    expect(store.getState().auth.user).toEqual(user);
+    expect(store.getState().auth.sessionExpired).toBe(false);
+});
