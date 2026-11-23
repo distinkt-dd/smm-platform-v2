@@ -49,3 +49,18 @@ it("shows a session message when restoration returns 401", async () => {
     render(<Provider store={createAppStore()}><MemoryRouter initialEntries={["/"]}><App /></MemoryRouter></Provider>);
     expect(await screen.findByText("Сессия недействительна или истекла. Войдите снова.")).toBeTruthy();
 });
+
+
+it.each(["/register", "/login"])("keeps a guest on registration after a delayed 401 from %s", async (initialPath) => {
+    vi.stubEnv("VITE_API_URL", "http://localhost:3000");
+    let finish!: (response: Response) => void;
+    vi.stubGlobal("fetch", vi.fn().mockReturnValue(new Promise<Response>((resolve) => { finish = resolve; })));
+    const store = createAppStore();
+    render(<Provider store={store}><MemoryRouter initialEntries={[initialPath]}><App /></MemoryRouter></Provider>);
+    if (initialPath === "/login") fireEvent.click(screen.getByRole("link", { name: "Зарегистрироваться" }));
+    expect(screen.getByRole("button", { name: "Создать аккаунт" })).toBeTruthy();
+    finish(Response.json({ message: "Unauthorized" }, { status: 401 }));
+    await waitFor(() => expect(store.getState().auth.sessionExpired).toBe(true));
+    expect(screen.getByRole("button", { name: "Создать аккаунт" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Войти" })).toBeNull();
+});

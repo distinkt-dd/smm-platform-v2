@@ -1,5 +1,11 @@
 import { useEffect, useRef } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router";
+import {
+    Navigate,
+    Route,
+    Routes,
+    useLocation,
+    useNavigate,
+} from "react-router";
 import { meThunk } from "./entities/auth";
 import { useAppDispatch, useAppSelector } from "./shared/store";
 import { ProtectedRoute } from "./shared/ui/protected-route/ProtectedRoute";
@@ -18,12 +24,18 @@ function App() {
         (state) => state.auth,
     );
     const navigate = useNavigate();
+    const { pathname } = useLocation();
     const handledExpiration = useRef(false);
     useEffect(() => {
-        if (sessionExpired && !handledExpiration.current)
+        if (
+            sessionExpired &&
+            !handledExpiration.current &&
+            pathname !== "/register" &&
+            pathname !== "/login"
+        )
             navigate("/login", { replace: true });
         handledExpiration.current = sessionExpired;
-    }, [sessionExpired, navigate]);
+    }, [sessionExpired, navigate, pathname]);
     const sessionError = requests.me.error;
     return (
         <Routes>
