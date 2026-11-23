@@ -1,11 +1,14 @@
+import { FormContainer } from '../../shared/ui'
+
 export const RegisterPage = () => {
 	return (
-		<section className='flex flex-col gap-3'>
-			<h1>Регистрация</h1>
-			<p className='text-ink-muted'>
-				Форма регистрации появится в следующей задаче: имя, email и пароль с
-				проверкой полей.
-			</p>
-		</section>
+		<FormContainer>
+			<div className="flex flex-col gap-3">
+				<h1 className="font-semibold">Давай знакомиться</h1>
+				<p className='text-ink-muted'>
+					Создай аккаунт для своей практики.
+				</p>
+			</div>
+		</FormContainer>
 	)
 }
