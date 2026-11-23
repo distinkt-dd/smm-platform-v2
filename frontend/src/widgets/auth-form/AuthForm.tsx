@@ -1,63 +1,51 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { SubmitEvent } from "react";
 import { Link } from "react-router";
-import { credentialsSchema, login, register } from "../../entities/auth";
-import { ApiHttpError, ApiNetworkError } from "../../shared/api/api";
-import { validate } from "../../shared/lib/validate";
+import {
+    clearAuthFeedback,
+    loginThunk,
+    registerThunk,
+} from "../../entities/auth";
+import { useAppDispatch, useAppSelector } from "../../shared/store";
 import { Button, Input } from "../../shared/ui";
 
 type Field = "email" | "password";
 
 export const AuthForm = ({ mode }: { mode: "login" | "register" }) => {
     const [values, setValues] = useState({ email: "", password: "" });
-    const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
-    const [formError, setFormError] = useState("");
-    const [notice, setNotice] = useState("");
-    const [pending, setPending] = useState(false);
+    const dispatch = useAppDispatch();
+    const request = useAppSelector((state) => state.auth.requests[mode]);
     const isLogin = mode === "login";
+    const pending = request.status === "pending";
+    const errors =
+        request.error?.kind === "validation" ? request.error.fields : {};
+    const formError =
+        request.error?.kind === "validation"
+            ? errors[""] || ""
+            : request.error?.kind === "unknown"
+              ? "Не удалось выполнить запрос. Попробуйте позже."
+              : request.error?.message || "";
+    const notice =
+        request.status === "fulfilled"
+            ? isLogin
+                ? "Вход выполнен."
+                : "Аккаунт создан. Теперь можно войти."
+            : "";
+
+    useEffect(() => {
+        dispatch(clearAuthFeedback({ operation: mode }));
+    }, [dispatch, mode]);
 
     const updateField = (field: Field, value: string) => {
         setValues((previous) => ({ ...previous, [field]: value }));
-        setErrors((previous) => ({ ...previous, [field]: undefined }));
-        setFormError("");
-        setNotice("");
+        dispatch(clearAuthFeedback({ operation: mode, field }));
     };
 
-    const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
+    const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (pending) return;
-        setErrors({});
-        setFormError("");
-        setNotice("");
-        const validation = validate(credentialsSchema, values);
-        if (!validation.success) {
-            setErrors(validation.errors);
-            if (validation.errors[""]) setFormError(validation.errors[""]);
-            return;
-        }
-        setPending(true);
-        try {
-            if (isLogin) {
-                await login(validation.data);
-                setNotice(
-                    "Вход выполнен. Сохранение сессии пока не подключено.",
-                );
-            } else {
-                await register(validation.data);
-                setNotice("Аккаунт создан. Теперь можно войти.");
-            }
-        } catch (error) {
-            if (
-                error instanceof ApiHttpError ||
-                error instanceof ApiNetworkError
-            ) {
-                setFormError(error.message);
-            } else {
-                setFormError("Не удалось выполнить запрос. Попробуйте позже.");
-            }
-        } finally {
-            setPending(false);
-        }
+        if (isLogin) void dispatch(loginThunk(values));
+        else void dispatch(registerThunk(values));
     };
 
     return (

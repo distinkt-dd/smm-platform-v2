@@ -1,12 +1,15 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
+import { Provider } from 'react-redux'
+import { createAppStore } from '../src/app/store'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { LoginForm } from '../src/pages/login/LoginForm'
 import { RegisterForm } from '../src/pages/register/RegisterForm'
 
 afterEach(() => {
     cleanup()
+    localStorage.clear()
     vi.unstubAllGlobals()
     vi.unstubAllEnvs()
 })
@@ -18,7 +21,7 @@ describe.each([
     it('shows field errors without a request and clears the edited field', async () => {
         const fetchMock = vi.fn()
         vi.stubGlobal('fetch', fetchMock)
-        render(<MemoryRouter><Form /></MemoryRouter>)
+        render(<Provider store={createAppStore({ restoreSession: false })}><MemoryRouter><Form /></MemoryRouter></Provider>)
         fireEvent.click(screen.getByRole('button', { name: button }))
         const email = screen.getByLabelText('Электронная почта')
         const password = screen.getByLabelText('Пароль')
@@ -35,9 +38,9 @@ describe.each([
         vi.stubEnv('VITE_API_URL', 'http://localhost:3000')
         const fetchMock = vi.fn()
             .mockResolvedValueOnce(Response.json({ message: 'Ошибка сервера' }, { status: 409 }))
-            .mockResolvedValueOnce(Response.json({ id: '1' }))
+            .mockResolvedValueOnce(Response.json(_mode === 'login' ? { user: { id: '1' } } : { id: '1' }))
         vi.stubGlobal('fetch', fetchMock)
-        render(<MemoryRouter><Form /></MemoryRouter>)
+        render(<Provider store={createAppStore({ restoreSession: false })}><MemoryRouter><Form /></MemoryRouter></Provider>)
         fireEvent.change(screen.getByLabelText('Электронная почта'), { target: { value: 'test@example.com' } })
         fireEvent.change(screen.getByLabelText('Пароль'), { target: { value: 'password123' } })
         fireEvent.click(screen.getByRole('button', { name: button }))

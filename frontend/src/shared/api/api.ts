@@ -30,7 +30,9 @@ export class ApiNetworkError extends Error {
     }
 }
 
-export async function requireResponse<T>(request: Promise<T | undefined>): Promise<T> {
+export async function requireResponse<T>(
+    request: Promise<T | undefined>,
+): Promise<T> {
     const response = await request;
     if (response === undefined) throw new Error("Сервер вернул пустой ответ");
     return response;
@@ -60,6 +62,12 @@ export async function apiRequest<T>(
     const headers = new Headers(inputHeaders);
     if (body !== undefined && !headers.has("Content-Type"))
         headers.set("Content-Type", "application/json");
+    if (
+        !["GET", "HEAD", "OPTIONS"].includes(
+            (requestOptions.method ?? "GET").toUpperCase(),
+        )
+    )
+        headers.set("X-CSRF-Protection", "1");
     if (token !== undefined) headers.set("Authorization", `Bearer ${token}`);
 
     let response: Response;
@@ -68,6 +76,7 @@ export async function apiRequest<T>(
             `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`,
             {
                 ...requestOptions,
+                credentials: "include",
                 headers,
                 body: body === undefined ? undefined : JSON.stringify(body),
             },

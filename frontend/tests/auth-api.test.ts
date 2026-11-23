@@ -46,7 +46,7 @@ describe("auth API", () => {
     );
     it.each([
         ["register", register, "/auth/register", user],
-        ["login", login, "/auth/login", { accessToken: "token", user }],
+        ["login", login, "/auth/login", { user }],
     ] as const)("sends JSON for %s and returns its response", async (_name, request, path, result) => {
         vi.stubEnv("VITE_API_URL", "http://localhost:3000");
         const fetchMock = vi.fn().mockResolvedValue(Response.json(result));
@@ -60,28 +60,28 @@ describe("auth API", () => {
         expect(JSON.parse(options.body)).toEqual(credentials);
     });
 
-    it("requests the current user with the Bearer token", async () => {
+    it("requests the current user with credentials", async () => {
         vi.stubEnv("VITE_API_URL", "http://localhost:3000");
         const fetchMock = vi.fn().mockResolvedValue(Response.json(user));
         vi.stubGlobal("fetch", fetchMock);
 
-        await expect(me("token")).resolves.toEqual(user);
+        await expect(me()).resolves.toEqual(user);
         const [url, options] = fetchMock.mock.calls[0];
         expect(url).toBe("http://localhost:3000/auth/me");
         expect(options.method).toBe("GET");
-        expect(options.headers.get("authorization")).toBe("Bearer token");
+        expect(options.credentials).toBe("include");
     });
 
     it("preserves HTTP and network errors", async () => {
         vi.stubEnv("VITE_API_URL", "http://localhost:3000");
         vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ message: "Unauthorized" }, { status: 401 })));
-        await expect(me("bad-token")).rejects.toMatchObject({ status: 401, messages: ["Unauthorized"] } satisfies Partial<ApiHttpError>);
+        await expect(me()).rejects.toMatchObject({ status: 401, messages: ["Unauthorized"] } satisfies Partial<ApiHttpError>);
 
         vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("network")));
         await expect(login(credentials)).rejects.toBeInstanceOf(ApiNetworkError);
     });
 
-    it.each([() => register(credentials), () => login(credentials), () => me("token")])(
+    it.each([() => register(credentials), () => login(credentials), () => me()])(
         "rejects an empty successful response",
         async (request) => {
             vi.stubEnv("VITE_API_URL", "http://localhost:3000");

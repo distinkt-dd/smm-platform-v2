@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { ApiHttpError, ApiNetworkError } from "../../../../shared/api/api";
 import { ValidationError } from "../../../../shared/lib/validate";
-import { login, me, register } from "../../api/auth-api";
+import { login, logout, me, register } from "../../api/auth-api";
 import type {
     LoginRequest,
     LoginResponse,
@@ -64,11 +64,22 @@ export const loginThunk = createAuthThunk<LoginResponse, LoginRequest>(
     },
 );
 
-export const meThunk = createAuthThunk<MeResponse, string>(
+export const meThunk = createAuthThunk<MeResponse, void>(
     "auth/me",
-    async (token, { rejectWithValue }) => {
+    async (_, { rejectWithValue }) => {
         try {
-            return await me(token);
+            return await me();
+        } catch (error) {
+            return rejectWithValue(toRequestError(error));
+        }
+    },
+);
+
+export const logoutThunk = createAuthThunk<void, void>(
+    "auth/logout",
+    async (_, { rejectWithValue }) => {
+        try {
+            await logout();
         } catch (error) {
             return rejectWithValue(toRequestError(error));
         }

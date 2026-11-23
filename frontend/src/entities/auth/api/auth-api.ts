@@ -3,6 +3,7 @@ import { validate, ValidationError } from "../../../shared/lib/validate";
 import { credentialsSchema } from "./credentials-schema";
 import {
     AUTH_LOGIN,
+    AUTH_LOGOUT,
     AUTH_ME,
     AUTH_REGISTER,
 } from "../../../shared/api/endpoints";
@@ -14,7 +15,9 @@ import type {
     RegisterResponse,
 } from "./types";
 
-export async function register(data: RegisterRequest): Promise<RegisterResponse> {
+export async function register(
+    data: RegisterRequest,
+): Promise<RegisterResponse> {
     const result = validate(credentialsSchema, data);
     if (!result.success) throw new ValidationError(result.errors);
     return requireResponse(
@@ -36,11 +39,14 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
     );
 }
 
-export function me(token: string): Promise<MeResponse> {
+export function me(): Promise<MeResponse> {
     return requireResponse(
         apiRequest<MeResponse>(AUTH_ME, {
             method: "GET",
-            token,
         }),
     );
+}
+
+export async function logout(): Promise<void> {
+    await apiRequest(AUTH_LOGOUT, { method: "POST" });
 }

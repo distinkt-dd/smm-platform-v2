@@ -1,7 +1,17 @@
-export { login, me, register } from "./api/auth-api";
+export { login, logout, me, register } from "./api/auth-api";
 export { credentialsSchema } from "./api/credentials-schema";
-export { loginThunk, meThunk, registerThunk } from "./model/thunks/auth-thunks";
+export {
+    loginThunk,
+    logoutThunk,
+    meThunk,
+    registerThunk,
+} from "./model/thunks/auth-thunks";
 export type { AuthRequestError } from "./model/thunks/auth-thunks";
+export {
+    authReducer,
+    clearAuthFeedback,
+    createInitialAuthState,
+} from "./model/auth-slice";
 export type {
     AuthCredentials,
     AuthUser,

@@ -14,7 +14,6 @@ export type RegisterRequest = AuthCredentials;
 export type RegisterResponse = AuthUser;
 export type LoginRequest = AuthCredentials;
 export type LoginResponse = {
-    accessToken: string;
     user: AuthUser;
 };
 export type MeResponse = AuthUser;
