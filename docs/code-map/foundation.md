@@ -35,6 +35,7 @@ Backend и frontend — независимые npm-проекты. Исходн�
 
 - Точка входа: `frontend/src/main.tsx`; стартовый компонент: `frontend/src/App.tsx`; маршрут `/` ведёт на `HomePage` из `frontend/src/pages`.
 - Слои FSD сверху вниз: `pages` → `widgets` → `shared`; импорт допустим только вниз. Страницы лежат в `frontend/src/pages`, общие layouts (`AuthLayout`, `MainLayout`) — в `frontend/src/pages/layouts`, самостоятельные блоки интерфейса — в `frontend/src/widgets`.
+- Базовый транспорт `frontend/src/shared/api/api.ts` использует `fetch` и обязательный `VITE_API_URL`, принимает JSON-тело, заголовки и необязательный Bearer-токен; успешный ответ разбирается как JSON или возвращает `undefined` при пустом теле. HTTP-ошибка содержит статус и сообщения сервера, ошибка сети выделена отдельно; тип ответа задаётся вызывающим кодом и не проверяется во время выполнения. Пути авторизации находятся в `frontend/src/shared/api/endpoints.ts`. Проверки: `npm run build`, `npm run lint`; методы авторизации и формы к транспорту ещё не подключены.
 - `FormContainer` в `frontend/src/shared/ui/form-container` задаёт общую ширину и отступы содержимого страниц входа и регистрации; поля и обработка отправки остаются в конкретной форме.
 - `LoginForm` в `frontend/src/pages/login/LoginForm.tsx` показывает поля входа и ссылку на регистрацию; отправка пока сообщает, что вход не подключён. Общие `Input` и `Button` находятся в `frontend/src/shared/ui` и используют глобальный видимый фокус и настройки уменьшения движения.
 - `RegisterForm` в `frontend/src/pages/register/RegisterForm.tsx` показывает поля email и пароля с ограничениями текущего API и ссылку на вход; отправка пока сообщает, что регистрация не подключена.
@@ -42,4 +43,4 @@ Backend и frontend — независимые npm-проекты. Исходн�
 - React, TypeScript, Vite и Tailwind CSS через `@tailwindcss/vite`; также установлены Redux Toolkit, React Router и инструменты тестирования из исходного проекта.
 - Базовые стили и токены дизайн-системы: `frontend/src/index.css` (`@theme` Tailwind CSS v4); отдельного `App.css` нет. Состав токенов и утилит описан в [дизайн-системе](../design-system.md#токены-в-коде).
 - Из `frontend`: `npm ci`, `npm run dev`, `npm run build`, `npm run lint`.
-- Хранилище и взаимодействие с backend пока не настроены. Экраны — заготовка, вёрстка опирается на готовые токены.
+- Хранилище и подключение экранов к backend пока не настроены. Экраны — заготовка, вёрстка опирается на готовые токены.
