@@ -1,11 +1,16 @@
+import { FormContainer } from '../../shared/ui'
+import { LoginForm } from './LoginForm'
+
 export const LoginPage = () => {
 	return (
-		<section className='flex flex-col gap-3'>
-			<h1>Вход</h1>
-			<p className='text-ink-muted'>
-				Форма входа появится в следующей задаче: поля email и пароль, запрос к
-				backend, состояния загрузки и ошибки.
-			</p>
-		</section>
+		<FormContainer>
+			<div className='flex flex-col gap-3'>
+				<h1>С возвращением</h1>
+				<p className='text-ink-muted'>
+					Продолжим создавать ваш контент.
+				</p>
+			</div>
+			<LoginForm />
+		</FormContainer>
 	)
 }

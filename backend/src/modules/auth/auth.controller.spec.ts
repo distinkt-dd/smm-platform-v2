@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TUserPublic } from '../../common/types/user.js';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
+import type { Response } from 'express';
 
 /**
  * Что здесь проверяем.
@@ -58,9 +59,11 @@ describe('AuthController', () => {
 
     authService.login.mockResolvedValue(loginResponse);
 
-    const result = await controller.login(REGISTRATION);
+    const response = { cookie: vi.fn() };
+    const result = await controller.login(REGISTRATION, response as unknown as Response);
     expect(authService.login).toHaveBeenCalledWith(REGISTRATION);
-    expect(result).toEqual(loginResponse);
+    expect(result).toEqual({ user: CREATED_USER });
+    expect(response.cookie).toHaveBeenCalledWith('access_token', 'test-token', expect.objectContaining({ httpOnly: true, sameSite: 'strict' }));
   })
 
   it('передаёт dto в AuthService.register и возвращает его результат', async () => {

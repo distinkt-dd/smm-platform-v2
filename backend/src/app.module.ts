@@ -9,6 +9,8 @@ import { PrismaModule } from './modules/prisma/prisma.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { TokenModule } from './modules/token/token.module.js';
 import { ProfileModule } from './modules/profile/profile.module.js';
+import { APP_GUARD } from '@nestjs/core';
+import { CsrfGuard } from './common/guards/csrf.guard.js';
 
 @Module({
   imports: [
@@ -25,6 +27,6 @@ import { ProfileModule } from './modules/profile/profile.module.js';
     ProfileModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, { provide: APP_GUARD, useClass: CsrfGuard }],
 })
 export class AppModule {}

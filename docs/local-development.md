@@ -6,7 +6,7 @@
 
 В Windows используй Node.js 26.13.0 с npm 11.20.0 как ориентир локального окружения. Эти версии указаны в [отчёте о проверке frontend](https://github.com/distinkt-dd/smm-platform-v2/issues/1). Оба Dockerfile используют Node.js 24 и npm из базового образа. [Проверка Docker Compose](https://github.com/distinkt-dd/smm-platform-v2/issues/2) подтверждает запуск обоих приложений в этом окружении.
 
-Проверь локальные версии командами `node --version` и `npm --version`. Создай `backend/.env` по инструкции ниже. Из каталога `backend` выполни `npm ci` и `npm run start:dev`. В отдельном терминале из `frontend` выполни `npm ci` и `npm run dev`. Backend по умолчанию отвечает на `http://localhost:3000/`. Адрес frontend Vite выводит в терминале.
+Проверь локальные версии командами `node --version` и `npm --version`. Создай `backend/.env` по инструкции ниже. Создай `frontend/.env.local` из `frontend/.env.example`, если файла ещё нет: Vite читает `VITE_API_URL` при запуске, после изменения файла его необходимо перезапустить. Из каталога `backend` выполни `npm ci` и `npm run start:dev`. В отдельном терминале из `frontend` выполни `npm ci` и `npm run dev`. Backend по умолчанию отвечает на `http://localhost:3000/`. Адрес frontend Vite выводит в терминале.
 
 ## Локальный PostgreSQL и переменные окружения
 

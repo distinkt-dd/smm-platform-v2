@@ -29,6 +29,11 @@ import { corsOptions } from '../src/common/configurations/env/cors.js';
 
 const REGISTER_PATH = '/auth/register';
 
+function cookieToken(response: { headers: Record<string, unknown> }): string {
+  const cookies = response.headers['set-cookie'] as string[];
+  return cookies.find((cookie) => cookie.startsWith('access_token='))!.split(';')[0].slice('access_token='.length);
+}
+
 const POSTGRES_USER = 'postgres';
 const POSTGRES_PASSWORD = 'password';
 const JWT_SECRET = 'test-secret';
@@ -137,15 +142,31 @@ describe('POST /auth/register (e2e)', () => {
 
     const me = await request(app.getHttpServer())
       .get('/auth/me')
-      .set('Authorization', `Bearer ${login.body.accessToken}`)
+      .set('Cookie', `access_token=${cookieToken(login)}`)
       .expect(200);
 
     expect(me.body).toEqual(registration.body);
 
     expect(login.body).toEqual({
-      accessToken: expect.any(String),
       user: registration.body,
     });
+  });
+
+  it('защищает cookie от чтения скриптами и очищает её при выходе', async () => {
+    const credentials = { email: uniqueEmail(), password: 'password123' };
+    const agent = request.agent(app.getHttpServer());
+    await agent.post('/auth/register').send(credentials).expect(201);
+    const login = await agent.post('/auth/login').send(credentials).expect(200);
+    const cookie = (login.headers['set-cookie'] as unknown as string[])[0];
+    expect(cookie).toContain('HttpOnly');
+    expect(cookie).toContain('SameSite=Strict');
+    expect(login.body).not.toHaveProperty('accessToken');
+    await agent.get('/auth/me').expect(200);
+    await agent.post('/auth/logout').set('Origin', 'http://evil.example').set('X-CSRF-Protection', '1').expect(403);
+    await agent.post('/auth/logout').set('Origin', 'http://localhost:5173').expect(403);
+    const logout = await agent.post('/auth/logout').set('Origin', 'http://localhost:5173').set('X-CSRF-Protection', '1').expect(204);
+    expect((logout.headers['set-cookie'] as unknown as string[])[0]).toContain('access_token=;');
+    await agent.get('/auth/me').expect(401);
   });
 
   it.each([
@@ -389,7 +410,7 @@ describe('POST /auth/register (e2e)', () => {
 
     const response = await request(app.getHttpServer())
       .put('/me/profile')
-      .set('Authorization', `Bearer ${login.body.accessToken}`)
+      .set('Authorization', `Bearer ${cookieToken(login)}`)
       .send(profile)
       .expect(200)
 
@@ -409,7 +430,7 @@ describe('POST /auth/register (e2e)', () => {
       .post('/auth/register').send(credentials).expect(201);
     const login = await request(app.getHttpServer())
       .post('/auth/login').send(credentials).expect(200);
-    return { userId: registration.body.id as string, token: login.body.accessToken as string };
+    return { userId: registration.body.id as string, token: cookieToken(login) };
   }
 
   const profileData = {
