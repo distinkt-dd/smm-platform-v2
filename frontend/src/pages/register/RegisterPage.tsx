@@ -1,4 +1,5 @@
 import { FormContainer } from '../../shared/ui'
+import { RegisterForm } from './RegisterForm'
 
 export const RegisterPage = () => {
 	return (
@@ -9,6 +10,7 @@ export const RegisterPage = () => {
 					Создай аккаунт для своей практики.
 				</p>
 			</div>
+			<RegisterForm />
 		</FormContainer>
 	)
 }

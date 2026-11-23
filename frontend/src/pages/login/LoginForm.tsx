@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 import { Link } from 'react-router'
 import { Button, Input } from '../../shared/ui'
 
 export const LoginForm = () => {
 	const [notice, setNotice] = useState(false)
 
-	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+	const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
 		event.preventDefault()
 		setNotice(true)
 	}
