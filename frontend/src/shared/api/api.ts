@@ -30,6 +30,12 @@ export class ApiNetworkError extends Error {
     }
 }
 
+export async function requireResponse<T>(request: Promise<T | undefined>): Promise<T> {
+    const response = await request;
+    if (response === undefined) throw new Error("Сервер вернул пустой ответ");
+    return response;
+}
+
 function getErrorMessages(body: unknown): string[] {
     if (typeof body !== "object" || body === null || !("message" in body))
         return [];
