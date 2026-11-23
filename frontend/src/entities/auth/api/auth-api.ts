@@ -1,5 +1,5 @@
 import { apiRequest, requireResponse } from "../../../shared/api/api";
-import { validate } from "../../../shared/lib/validate";
+import { validate, ValidationError } from "../../../shared/lib/validate";
 import { credentialsSchema } from "./credentials-schema";
 import {
     AUTH_LOGIN,
@@ -15,19 +15,23 @@ import type {
 } from "./types";
 
 export async function register(data: RegisterRequest): Promise<RegisterResponse> {
+    const result = validate(credentialsSchema, data);
+    if (!result.success) throw new ValidationError(result.errors);
     return requireResponse(
         apiRequest<RegisterResponse>(AUTH_REGISTER, {
             method: "POST",
-            body: validate(credentialsSchema, data),
+            body: result.data,
         }),
     );
 }
 
 export async function login(data: LoginRequest): Promise<LoginResponse> {
+    const result = validate(credentialsSchema, data);
+    if (!result.success) throw new ValidationError(result.errors);
     return requireResponse(
         apiRequest<LoginResponse>(AUTH_LOGIN, {
             method: "POST",
-            body: validate(credentialsSchema, data),
+            body: result.data,
         }),
     );
 }

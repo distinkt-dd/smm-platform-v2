@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { login, me, register } from "../src/entities/auth";
 import { ApiHttpError, ApiNetworkError } from "../src/shared/api/api";
-import { ZodError } from "zod";
+import { ValidationError } from "../src/shared/lib/validate";
 
 const user = { id: "user-id", email: "test@example.com", createdAt: "2026-11-23T00:00:00.000Z" };
 const credentials = { email: user.email, password: "password123" };
@@ -39,7 +39,7 @@ describe("auth API", () => {
                 { ...credentials, password: "a".repeat(33) },
                 { ...credentials, password: "😀".repeat(7) },
             ]) {
-                await expect(request(data)).rejects.toBeInstanceOf(ZodError);
+                await expect(request(data)).rejects.toBeInstanceOf(ValidationError);
             }
             expect(fetchMock).not.toHaveBeenCalled();
         },
