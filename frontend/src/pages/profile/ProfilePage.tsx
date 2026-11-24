@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { loadProfileThunk } from '../../entities/profile'
 import { useAppDispatch, useAppSelector } from '../../shared/store'
 import { Button, FormContainer } from '../../shared/ui'
-import { ProfileForm, ServicesList } from '../../widgets/profile'
+import { ProfileForm, ServicesList, FactsList } from '../../widgets/profile'
 
 export const ProfilePage = () => {
 	const dispatch = useAppDispatch()
@@ -21,7 +21,7 @@ export const ProfilePage = () => {
 	const loadError = load.status === 'rejected' ? load.error : null
 
 	return (
-		<div className='flex w-full flex-col items-start gap-12 phone:flex-row'>
+		<div className='grid w-full grid-cols-1 items-start gap-12 phone:grid-cols-2 xl:grid-cols-3'>
 			<FormContainer>
 				<div className='flex flex-col gap-3'>
 					<h1>Профиль мастера</h1>
@@ -49,7 +49,10 @@ export const ProfilePage = () => {
 				{!loading && <ProfileForm key={profile?.id ?? 'new'} profile={profile} />}
 			</FormContainer>
 			{(profile || load.status === 'fulfilled') && (
-				<ServicesList services={profile?.services ?? []} profileId={profile?.id} />
+				<>
+					<ServicesList services={profile?.services ?? []} profileId={profile?.id} />
+					<FactsList key={profile?.id ?? "new"} facts={profile?.confirmedFacts ?? []} profileId={profile?.id} />
+				</>
 			)}
 		</div>
 	)

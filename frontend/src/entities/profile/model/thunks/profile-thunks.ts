@@ -1,3 +1,11 @@
+import {
+    createFact,
+    updateFact,
+    deleteFact,
+    type CreateFactRequest,
+    type UpdateFactRequest,
+} from "../../api/fact-api";
+import type { ConfirmedFact } from "../../api/types";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { ApiHttpError, ApiNetworkError } from "../../../../shared/api/api";
 import { ValidationError } from "../../../../shared/lib/validate";
@@ -100,6 +108,37 @@ export const deleteServiceThunk = createProfileThunk<
 >("profile/deleteService", async ({ id }, { rejectWithValue }) => {
     try {
         await deleteService(id);
+    } catch (error) {
+        return rejectWithValue(toRequestError(error));
+    }
+});
+
+export const createFactThunk = createProfileThunk<
+    ConfirmedFact,
+    { profileId: string; values: CreateFactRequest }
+>("profile/createFact", async ({ values }, { rejectWithValue }) => {
+    try {
+        return await createFact(values);
+    } catch (error) {
+        return rejectWithValue(toRequestError(error));
+    }
+});
+export const updateFactThunk = createProfileThunk<
+    ConfirmedFact,
+    { profileId: string; id: string; values: UpdateFactRequest }
+>("profile/updateFact", async ({ id, values }, { rejectWithValue }) => {
+    try {
+        return await updateFact(id, values);
+    } catch (error) {
+        return rejectWithValue(toRequestError(error));
+    }
+});
+export const deleteFactThunk = createProfileThunk<
+    void,
+    { profileId: string; id: string }
+>("profile/deleteFact", async ({ id }, { rejectWithValue }) => {
+    try {
+        await deleteFact(id);
     } catch (error) {
         return rejectWithValue(toRequestError(error));
     }

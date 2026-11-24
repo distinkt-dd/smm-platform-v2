@@ -1,6 +1,9 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { Profile, ProfileRequest } from "../api/types";
 import {
+    createFactThunk,
+    updateFactThunk,
+    deleteFactThunk,
     loadProfileThunk,
     saveProfileThunk,
     createServiceThunk,
@@ -37,6 +40,7 @@ export const createInitialProfileState = () => ({
     requests: {
         load: initialRequest(),
         save: initialRequest(),
+        fact: initialRequest(),
         createService: initialRequest(),
         changeService: initialRequest(),
     },
@@ -73,6 +77,68 @@ const profileSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            .addCase(createFactThunk.pending, (state, action) => {
+                state.requests.fact = {
+                    status: "pending",
+                    error: null,
+                    requestId: action.meta.requestId,
+                };
+            })
+            .addCase(updateFactThunk.pending, (state, action) => {
+                state.requests.fact = {
+                    status: "pending",
+                    error: null,
+                    requestId: action.meta.requestId,
+                };
+            })
+            .addCase(deleteFactThunk.pending, (state, action) => {
+                state.requests.fact = {
+                    status: "pending",
+                    error: null,
+                    requestId: action.meta.requestId,
+                };
+            })
+            .addCase(createFactThunk.fulfilled, (state, action) => {
+                if (state.requests.fact.requestId !== action.meta.requestId)
+                    return;
+                if (state.profile?.id === action.meta.arg.profileId)
+                    state.profile.confirmedFacts.push(action.payload);
+                state.requests.fact = {
+                    status: "fulfilled",
+                    error: null,
+                    requestId: null,
+                };
+            })
+            .addCase(updateFactThunk.fulfilled, (state, action) => {
+                if (state.requests.fact.requestId !== action.meta.requestId)
+                    return;
+                if (state.profile?.id === action.meta.arg.profileId) {
+                    const index = state.profile.confirmedFacts.findIndex(
+                        (fact) => fact.id === action.meta.arg.id,
+                    );
+                    if (index !== -1)
+                        state.profile.confirmedFacts[index] = action.payload;
+                }
+                state.requests.fact = {
+                    status: "fulfilled",
+                    error: null,
+                    requestId: null,
+                };
+            })
+            .addCase(deleteFactThunk.fulfilled, (state, action) => {
+                if (state.requests.fact.requestId !== action.meta.requestId)
+                    return;
+                if (state.profile?.id === action.meta.arg.profileId)
+                    state.profile.confirmedFacts =
+                        state.profile.confirmedFacts.filter(
+                            (fact) => fact.id !== action.meta.arg.id,
+                        );
+                state.requests.fact = {
+                    status: "fulfilled",
+                    error: null,
+                    requestId: null,
+                };
+            })
             .addCase(updateServiceThunk.pending, (state, action) => {
                 state.requests.changeService = {
                     status: "pending",
@@ -251,7 +317,31 @@ const profileSlice = createSlice({
                     },
                     requestId: null,
                 };
-            });
+            })
+            .addMatcher(
+                (
+                    action,
+                ): action is
+                    | ReturnType<typeof createFactThunk.rejected>
+                    | ReturnType<typeof updateFactThunk.rejected>
+                    | ReturnType<typeof deleteFactThunk.rejected> =>
+                    createFactThunk.rejected.match(action) ||
+                    updateFactThunk.rejected.match(action) ||
+                    deleteFactThunk.rejected.match(action),
+                (state, action) => {
+                    if (state.requests.fact.requestId !== action.meta.requestId)
+                        return;
+                    state.requests.fact = {
+                        status: "rejected",
+                        error: action.payload ?? {
+                            kind: "unknown",
+                            message:
+                                action.error.message ?? "Неизвестная ошибка",
+                        },
+                        requestId: null,
+                    };
+                },
+            );
     },
 });
 
