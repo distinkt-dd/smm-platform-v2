@@ -2,8 +2,7 @@ import { useEffect, useRef } from 'react'
 import { loadProfileThunk } from '../../entities/profile'
 import { useAppDispatch, useAppSelector } from '../../shared/store'
 import { Button, FormContainer } from '../../shared/ui'
-import { ProfileForm } from './ProfileForm'
-import { ServicesList } from './ServicesList'
+import { ProfileForm, ServicesList } from '../../widgets/profile'
 
 export const ProfilePage = () => {
 	const dispatch = useAppDispatch()
