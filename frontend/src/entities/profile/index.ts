@@ -25,3 +25,8 @@ export {
     saveProfileThunk,
 } from "./model/thunks/profile-thunks";
 export type { ProfileRequestError } from "./model/thunks/profile-thunks";
+
+export { createFact, updateFact, deleteFact } from "./api/fact-api";
+export type { CreateFactRequest, UpdateFactRequest } from "./api/fact-api";
+export { factSchema } from "./api/fact-schema";
+export { createFactThunk, updateFactThunk, deleteFactThunk } from "./model/thunks/profile-thunks";

@@ -34,6 +34,7 @@ export const ProfileForm = ({ profile }: { profile: Profile | null }) => {
     const save = useAppSelector((state) => state.profile.requests.save);
     const creatingService = useAppSelector(
         (state) =>
+            state.profile.requests.fact.status === "pending" ||
             state.profile.requests.createService.status === "pending" ||
             state.profile.requests.changeService.status === "pending",
     );
