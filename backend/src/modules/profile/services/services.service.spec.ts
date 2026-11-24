@@ -153,10 +153,12 @@ describe('ServicesService', () => {
 
   it('на пустой `PATCH` отвечает 400 и не трогает базу', async () => {
     // После `whitelist` тело из одних неизвестных полей выглядит как `{}`.
-    await expect(service.update(USER_ID, SERVICE_ID, {})).rejects.toMatchObject({
-      status: 400,
-      message: 'Нужно передать хотя бы одно поле для изменения!',
-    });
+    await expect(service.update(USER_ID, SERVICE_ID, {})).rejects.toMatchObject(
+      {
+        status: 400,
+        message: 'Нужно передать хотя бы одно поле для изменения!',
+      },
+    );
 
     // Изменять нечего — это ошибка клиента, а не повод сходить в базу.
     expect(serviceRepository.updateServiceByUserId).not.toHaveBeenCalled();
