@@ -1,0 +1,337 @@
+# Graph Report - smm-platform-v2  (2026-11-24)
+
+## Corpus Check
+- cluster-only mode — file stats not available
+
+## Summary
+- 933 nodes · 2082 edges · 78 communities (49 shown, 29 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 30 edges (avg confidence: 0.85)
+- Token cost: 0 input · 0 output
+
+## Graph Freshness
+- Built from commit: `2fbebfcb`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
+
+## Community Hubs (Navigation)
+- Community 0
+- Community 1
+- Community 2
+- Community 3
+- Community 4
+- Community 5
+- Community 6
+- Community 7
+- Community 8
+- Community 9
+- Community 10
+- Community 11
+- Community 12
+- Community 13
+- Community 14
+- Community 15
+- Community 16
+- Community 17
+- Community 18
+- Community 19
+- Community 20
+- Community 21
+- Community 22
+- Community 23
+- Community 24
+- Community 25
+- Community 26
+- Community 27
+- Community 28
+- Community 29
+- Community 30
+- Community 31
+- Community 32
+- Community 33
+- Community 34
+- Community 35
+- Community 36
+- Community 37
+- Community 38
+- Community 39
+- Community 40
+- Community 41
+- Community 42
+- Community 43
+- Community 44
+- Community 45
+- Community 46
+- Community 47
+- Community 48
+- Community 49
+- Community 50
+- Community 51
+- Community 52
+- Community 53
+- Community 54
+- Community 55
+- Community 56
+- Community 57
+- Community 58
+- Community 59
+- Community 60
+- Community 61
+- Community 62
+- Community 63
+- Community 64
+- Community 65
+- Community 66
+- Community 67
+- Community 68
+- Community 69
+- Community 70
+- Community 71
+- Community 72
+- Community 73
+- Community 74
+
+## God Nodes (most connected - your core abstractions)
+1. `@nestjs/common` - 44 edges
+2. `PrismaService` - 27 edges
+3. `TUserPublic` - 24 edges
+4. `compilerOptions` - 20 edges
+5. `ProfilePage()` - 19 edges
+6. `apiRequest()` - 19 edges
+7. `@nestjs/testing` - 19 edges
+8. `createAppStore()` - 18 edges
+9. `compilerOptions` - 18 edges
+10. `EnvConfig` - 17 edges
+
+## Surprising Connections (you probably didn't know these)
+- `eslint@^10.14.0` --declares--> `eslint`  [EXTRACTED]
+  frontend/package.json → backend/package.json
+- `eslint-config-prettier@^10.1.8` --declares--> `eslint-config-prettier`  [EXTRACTED]
+  frontend/package.json → backend/package.json
+- `@eslint/js@^10.0.1` --declares--> `@eslint/js`  [EXTRACTED]
+  frontend/package.json → backend/package.json
+- `globals@^17.13.0` --declares--> `globals`  [EXTRACTED]
+  frontend/package.json → backend/package.json
+- `oxlint@^1.90.0` --declares--> `oxlint`  [EXTRACTED]
+  frontend/package.json → backend/package.json
+
+## Import Cycles
+- None detected.
+
+## Communities (78 total, 29 thin omitted)
+
+### Community 0 - "Community 0"
+Cohesion: 0.08
+Nodes (12): Service, CreateServiceDto, UpdateServiceDto, SERVICE_PUBLIC_SELECT, ServiceRepository, ServicesController, CREATE_DTO, request (+4 more)
+
+### Community 1 - "Community 1"
+Cohesion: 0.09
+Nodes (13): ConfirmedFact, CreateFactDto, UpdateFactDto, FactsController, CREATE_DTO, FACT, request, FactsService (+5 more)
+
+### Community 2 - "Community 2"
+Cohesion: 0.07
+Nodes (14): @nestjs/passport@^12.0.0, JwtAuthGuard, ProfileDto, toDto(), VALID, validatePayload(), FactsModule, ProfileController (+6 more)
+
+### Community 3 - "Community 3"
+Cohesion: 0.14
+Nodes (27): logout(), me(), credentialsSchema, AuthCredentials, AuthUser, LoginRequest, LoginResponse, MeResponse (+19 more)
+
+### Community 4 - "Community 4"
+Cohesion: 0.16
+Nodes (21): getProfile(), profileSchema, ConfirmedFact, GetProfileResponse, Profile, ProfileRequest, SaveProfileResponse, Service (+13 more)
+
+### Community 5 - "Community 5"
+Cohesion: 0.07
+Nodes (29): VITE_API_URL, build, environment, ports, args, context, environment, healthcheck (+21 more)
+
+### Community 6 - "Community 6"
+Cohesion: 0.12
+Nodes (16): AppModule, BACKEND_ROOT, cookieToken(), DATABASE_DIR, registerAndLogin(), DATABASE_DIR, BACKEND_ROOT, bearer() (+8 more)
+
+### Community 7 - "Community 7"
+Cohesion: 0.07
+Nodes (28): dependencies, argon2@^0.45.1, class-transformer@^0.5.1, class-validator@^0.15.1, cookie-parser@^1.4.7, multer@^2.5.0, @nestjs/common@^12.0.1, @nestjs/config@^12.1.1 (+20 more)
+
+### Community 8 - "Community 8"
+Cohesion: 0.07
+Nodes (25): compilerOptions, rootDir, exclude, extends, include, compilerOptions, allowSyntheticDefaultImports, declaration (+17 more)
+
+### Community 9 - "Community 9"
+Cohesion: 0.16
+Nodes (10): App(), HomePage(), AuthLayout(), NotFoundPage(), Props, ProtectedRoute(), show(), react-redux (+2 more)
+
+### Community 10 - "Community 10"
+Cohesion: 0.08
+Nodes (24): devDependencies, embedded-postgres@^18.6.0-beta.19, @nestjs/cli@^12.0.0, @nestjs/testing@^12.0.1, source-map-support@^0.5.21, supertest@^7.0.0, @types/express@^5.0.0, @types/mailparser@^3.9.0 (+16 more)
+
+### Community 11 - "Community 11"
+Cohesion: 0.17
+Nodes (13): createAppStore(), ProfilePage(), profile, setup(), login(), profile, service, showPage() (+5 more)
+
+### Community 12 - "Community 12"
+Cohesion: 0.21
+Nodes (18): login(), register(), saveProfile(), createService(), CreateServiceRequest, deleteService(), fieldsByMessage, throwServiceError() (+10 more)
+
+### Community 13 - "Community 13"
+Cohesion: 0.16
+Nodes (9): Button(), ButtonProps, ConfirmationDialog(), Props, Input(), InputProps, TextareaProps, Field (+1 more)
+
+### Community 14 - "Community 14"
+Cohesion: 0.10
+Nodes (19): compilerOptions, allowArbitraryExtensions, allowImportingTsExtensions, erasableSyntaxOnly, jsx, lib, module, moduleDetection (+11 more)
+
+### Community 15 - "Community 15"
+Cohesion: 0.16
+Nodes (6): EnvConfig, Env, CREATED_ROW, RELATION_USER, @nestjs/config, @nestjs/testing
+
+### Community 16 - "Community 16"
+Cohesion: 0.19
+Nodes (6): EnvModule, HealthController, HealthStatus, HealthModule, PrismaModule, @nestjs/common
+
+### Community 17 - "Community 17"
+Cohesion: 0.15
+Nodes (5): AuthModule, AuthRepository, fromCookie(), JwtStrategy, TokenModule
+
+### Community 18 - "Community 18"
+Cohesion: 0.38
+Nodes (13): ProfileRequestError, useAppDispatch, useAppSelector, Textarea(), EditServiceForm(), Drafts, key(), readServiceDrafts() (+5 more)
+
+### Community 19 - "Community 19"
+Cohesion: 0.12
+Nodes (16): compilerOptions, allowImportingTsExtensions, erasableSyntaxOnly, lib, module, moduleDetection, noEmit, noFallthroughCasesInSwitch (+8 more)
+
+### Community 20 - "Community 20"
+Cohesion: 0.12
+Nodes (15): author, passport-jwt@^4.0.1, description, @types/pg@^8.23.1, engines, node, license, name (+7 more)
+
+### Community 21 - "Community 21"
+Cohesion: 0.12
+Nodes (16): eslint@^10.14.0, eslint-config-prettier@^10.1.8, eslint, eslint-config-prettier, devDependencies, eslint@^10.14.0, eslint-config-prettier@^10.1.8, eslint-plugin-react-hooks@^7.1.1 (+8 more)
+
+### Community 22 - "Community 22"
+Cohesion: 0.24
+Nodes (7): LoginForm(), LoginPage(), RegisterForm(), RegisterPage(), FormContainer(), FormContainerProps, AuthForm()
+
+### Community 23 - "Community 23"
+Cohesion: 0.26
+Nodes (4): TokenController, TokenService, TokenPayload, @nestjs/jwt
+
+### Community 24 - "Community 24"
+Cohesion: 0.13
+Nodes (14): jsdom@^30.1.3, @types/react@^19.3.0, @types/validator@^13.15.10, engines, node, name, overrides, minimatch (+6 more)
+
+### Community 25 - "Community 25"
+Cohesion: 0.16
+Nodes (9): AppDispatch, RootState, sessionMiddleware(), store, advanceSessionVersion(), setSessionExpiredHandler(), profile, values (+1 more)
+
+### Community 26 - "Community 26"
+Cohesion: 0.23
+Nodes (4): RegistrationUserDto, toDto(), validatePayload(), class-transformer
+
+### Community 28 - "Community 28"
+Cohesion: 0.21
+Nodes (9): validator@^13.15.35, fieldByMessage, fieldByNormalizedMessage, normalize(), ProfileField, profileMessages, toProfileFieldErrors(), ValidationErrors (+1 more)
+
+### Community 29 - "Community 29"
+Cohesion: 0.15
+Nodes (13): scripts, build, format, lint, start, start:debug, start:dev, start:prod (+5 more)
+
+### Community 31 - "Community 31"
+Cohesion: 0.21
+Nodes (8): emptyValues, Field, ProfileForm(), ProfileValues, toValues(), renderForm(), user, values
+
+### Community 33 - "Community 33"
+Cohesion: 0.26
+Nodes (8): TUserForRelation, TUserPrivate, TUserPublic, CREATED_USER, REGISTRATION, CREATED_USER, REGISTRATION, argon2
+
+### Community 34 - "Community 34"
+Cohesion: 0.22
+Nodes (7): ApiHttpError, ApiNetworkError, ApiRequestOptions, getErrorMessages(), JsonValue, credentials, user
+
+### Community 35 - "Community 35"
+Cohesion: 0.24
+Nodes (4): allowedOrigins, corsOptions, CsrfGuard, @nestjs/core
+
+### Community 36 - "Community 36"
+Cohesion: 0.33
+Nodes (3): MainLayout(), Logo(), Header()
+
+### Community 38 - "Community 38"
+Cohesion: 0.22
+Nodes (9): dependencies, react@^19.3.1, react-dom@^19.3.1, react-redux@^9.3.1, react-router@^8.5.1, @reduxjs/toolkit@^2.14.0, zod@^4.6.7, zod (+1 more)
+
+### Community 39 - "Community 39"
+Cohesion: 0.39
+Nodes (6): "users", users_email_key, "confirmed_facts", "master_profiles", master_profiles_user_id_key, "services"
+
+### Community 40 - "Community 40"
+Cohesion: 0.29
+Nodes (6): env, node, rules, typescript/no-explicit-any, typescript/no-floating-promises, $schema
+
+### Community 41 - "Community 41"
+Cohesion: 0.33
+Nodes (5): collection, compilerOptions, deleteOutDir, $schema, sourceRoot
+
+### Community 42 - "Community 42"
+Cohesion: 0.33
+Nodes (5): plugins, rules, react/only-export-components, react/rules-of-hooks, $schema
+
+### Community 43 - "Community 43"
+Cohesion: 0.33
+Nodes (4): @tailwindcss/vite@^4.3.0, @vitejs/plugin-react@^6.1.2, @tailwindcss/vite, @vitejs/plugin-react
+
+### Community 44 - "Community 44"
+Cohesion: 0.33
+Nodes (5): AUTH_LOGIN, AUTH_LOGOUT, AUTH_ME, AUTH_REGISTER, PROFILE
+
+### Community 45 - "Community 45"
+Cohesion: 0.40
+Nodes (4): dotenv@^18.0.9, prisma@^7.10.1, dotenv, prisma
+
+### Community 48 - "Community 48"
+Cohesion: 0.40
+Nodes (5): scripts, build, dev, lint, preview
+
+### Community 49 - "Community 49"
+Cohesion: 0.67
+Nodes (3): @eslint/js@^10.0.1, @eslint/js, @eslint/js@^10.0.1
+
+### Community 50 - "Community 50"
+Cohesion: 0.67
+Nodes (3): globals@^17.13.0, globals, globals@^17.13.0
+
+### Community 51 - "Community 51"
+Cohesion: 0.67
+Nodes (3): oxlint@^1.58.0, oxlint, oxlint@^1.90.0
+
+### Community 52 - "Community 52"
+Cohesion: 0.67
+Nodes (3): @types/node@^24.0.0, @types/node, @types/node@^24.19.2
+
+### Community 53 - "Community 53"
+Cohesion: 0.67
+Nodes (3): typescript@^6.0.2, typescript, typescript@~6.0.2
+
+### Community 54 - "Community 54"
+Cohesion: 0.67
+Nodes (3): typescript-eslint@^8.72.1, typescript-eslint, typescript-eslint@^8.72.1
+
+## Knowledge Gaps
+- **29 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+
+## Suggested Questions
+_Questions this graph is uniquely positioned to answer:_
+
+- **Why does `@nestjs/common` connect `Community 16` to `Community 32`, `Community 33`, `Community 2`, `Community 35`, `Community 1`, `Community 0`, `Community 6`, `Community 7`, `Community 15`, `Community 17`, `Community 20`, `Community 23`, `Community 26`?**
+  _High betweenness centrality (0.205) - this node is a cross-community bridge._
+- **Should `Community 0` be split into smaller, more focused modules?**
+  _Cohesion score 0.08245981830887492 - nodes in this community are weakly interconnected._
+- **Why does `react` connect `Community 13` to `Community 38`, `Community 9`, `Community 11`, `Community 18`, `Community 22`, `Community 24`, `Community 31`?**
+  _High betweenness centrality (0.076) - this node is a cross-community bridge._
+- **Should `Community 1` be split into smaller, more focused modules?**
+  _Cohesion score 0.08563134978229318 - nodes in this community are weakly interconnected._
+- **Why does `@reduxjs/toolkit` connect `Community 25` to `Community 24`, `Community 3`, `Community 4`, `Community 38`?**
+  _High betweenness centrality (0.068) - this node is a cross-community bridge._
+- **Should `Community 2` be split into smaller, more focused modules?**
+  _Cohesion score 0.07137254901960784 - nodes in this community are weakly interconnected._
+- **Should `Community 3` be split into smaller, more focused modules?**
+  _Cohesion score 0.14114114114114115 - nodes in this community are weakly interconnected._
