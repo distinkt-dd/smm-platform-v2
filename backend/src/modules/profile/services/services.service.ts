@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Service } from '../../../common/types/services.js';
 import { CreateServiceDto } from './dto/create-service.dto.js';
 import { UpdateServiceDto } from './dto/update-service.dto.js';
@@ -40,6 +44,17 @@ export class ServicesService {
     serviceId: string,
     dto: UpdateServiceDto,
   ): Promise<Service> {
+    // Пустое тело (`{}` или только неизвестные поля, которые срезал
+    // `whitelist`) не содержит изменений: без этой проверки Prisma выполнила
+    // бы запись вхолостую и вернула `200` с неизменённой записью. Отвечаем
+    // `400` до обращения к базе: изменять нечего — это ошибка клиента, а не
+    // отсутствующая запись.
+    if (!Object.values(dto).some((value) => value !== undefined)) {
+      throw new BadRequestException(
+        'Нужно передать хотя бы одно поле для изменения!',
+      );
+    }
+
     const service = await this.serviceRepository.updateServiceByUserId(
       userId,
       serviceId,

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfirmedFact } from '../../../common/types/confirmed-fact.js';
 import { CreateFactDto } from './dto/create-fact.dto.js';
 import { UpdateFactDto } from './dto/update-fact.dto.js';
@@ -36,6 +40,15 @@ export class FactsService {
     factId: string,
     dto: UpdateFactDto,
   ): Promise<ConfirmedFact> {
+    // Пустое тело (`{}` или только неизвестные поля, срезанные `whitelist`)
+    // не содержит изменений. Без проверки Prisma обновила бы строку вхолостую
+    // и вернула `200`; отвечаем `400`, потому что это ошибка клиента.
+    if (!Object.values(dto).some((value) => value !== undefined)) {
+      throw new BadRequestException(
+        'Нужно передать хотя бы одно поле для изменения!',
+      );
+    }
+
     const fact = await this.factRepository.updateFactByUserId(
       userId,
       factId,

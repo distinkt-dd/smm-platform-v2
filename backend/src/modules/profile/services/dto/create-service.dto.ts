@@ -11,5 +11,5 @@ export class CreateServiceDto {
     message: 'Описание услуги не должно превышать 250 символов!',
   })
   @IsOptional()
-  description?: string;
+  description?: string | null;
 }
