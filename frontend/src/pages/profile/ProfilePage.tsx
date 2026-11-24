@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { clearAuthFeedback, logoutThunk } from '../../entities/auth'
 import { loadProfileThunk } from '../../entities/profile'
 import { useAppDispatch, useAppSelector } from '../../shared/store'
 import { Button, FormContainer } from '../../shared/ui'
+import { ConfirmationDialog } from '../../shared/ui/confirmation-dialog'
 import { ProfileForm, ServicesList, FactsList } from '../../widgets/profile'
 
 export const ProfilePage = () => {
@@ -9,6 +11,8 @@ export const ProfilePage = () => {
 	const profile = useAppSelector(state => state.profile.profile)
 	const load = useAppSelector(state => state.profile.requests.load)
 	const started = useRef(false)
+	const [confirmLogout, setConfirmLogout] = useState(false)
+	const logout = useAppSelector(state => state.auth.requests.logout)
 
 	useEffect(() => {
 		// StrictMode запускает эффект дважды: повторный запрос не нужен.
@@ -47,7 +51,12 @@ export const ProfilePage = () => {
 					</div>
 				)}
 				{!loading && <ProfileForm key={profile?.id ?? 'new'} profile={profile} />}
+				<button type='button' className='min-h-12 self-start rounded-control border border-line px-5 font-semibold' onClick={() => {
+					dispatch(clearAuthFeedback({ operation: 'logout' }))
+					setConfirmLogout(true)
+				}}>Выйти</button>
 			</FormContainer>
+			{confirmLogout && <ConfirmationDialog title='Выйти из аккаунта?' description='Для продолжения работы потребуется снова войти.' confirmLabel='Выйти' pending={logout.status === 'pending'} error={logout.error ? 'Не удалось выйти. Попробуйте ещё раз.' : undefined} onCancel={() => setConfirmLogout(false)} onConfirm={() => { void dispatch(logoutThunk()) }} />}
 			{(profile || load.status === 'fulfilled') && (
 				<>
 					<ServicesList services={profile?.services ?? []} profileId={profile?.id} />

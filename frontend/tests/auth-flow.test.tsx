@@ -11,14 +11,27 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 it("restores a session, enters the home page and exits to login", async () => {
     vi.stubEnv("VITE_API_URL", "http://localhost:3000");
     const user = { id: "1", email: "user@example.com", createdAt: "2026-11-23T00:00:00.000Z" };
-    const fetchMock = vi.fn().mockResolvedValueOnce(Response.json(user)).mockResolvedValueOnce(new Response(null, { status: 204 }));
+    HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
+    HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
+    const fetchMock = vi.fn((url: string) => {
+        if (url.endsWith('/auth/me')) return Promise.resolve(Response.json(user));
+        if (url.endsWith('/me/profile')) return Promise.resolve(new Response(null, { status: 404 }));
+        return Promise.resolve(new Response(null, { status: 204 }));
+    });
     vi.stubGlobal("fetch", fetchMock);
     render(<Provider store={createAppStore()}><MemoryRouter initialEntries={["/"]}><App /></MemoryRouter></Provider>);
     expect(screen.getByRole("status").textContent).toContain("Проверяем");
     expect(await screen.findByRole("heading", { name: "Главная" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("link", { name: "Профиль" }));
+    await screen.findByRole("heading", { name: "Профиль мастера" });
     fireEvent.click(screen.getByRole("button", { name: "Выйти" }));
+    expect(fetchMock.mock.calls.some(([url]) => url.endsWith('/auth/logout'))).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Отмена" }));
+    expect(fetchMock.mock.calls.some(([url]) => url.endsWith('/auth/logout'))).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Выйти" }));
+    fireEvent.click(screen.getByRole("dialog").querySelector('button:last-child')!);
     await waitFor(() => expect(screen.getByRole("button", { name: "Войти" })).toBeTruthy());
-    expect(fetchMock.mock.calls[1][0]).toBe("http://localhost:3000/auth/logout");
+    expect(fetchMock.mock.calls.some(([url]) => url === "http://localhost:3000/auth/logout")).toBe(true);
 });
 
 
@@ -27,6 +40,7 @@ it("redirects after a protected request expires and keeps login errors separate"
     const user = { id: "1", email: "user@example.com", createdAt: "2026-11-23T00:00:00.000Z" };
     vi.stubGlobal("fetch", vi.fn()
         .mockResolvedValueOnce(Response.json(user))
+        .mockResolvedValueOnce(new Response(null, { status: 404 }))
         .mockResolvedValueOnce(Response.json({ message: "Unauthorized" }, { status: 401 }))
         .mockResolvedValueOnce(Response.json({ message: "Unauthorized" }, { status: 401 })));
     const store = createAppStore();
