@@ -3,6 +3,7 @@ import { loadProfileThunk } from '../../entities/profile'
 import { useAppDispatch, useAppSelector } from '../../shared/store'
 import { Button, FormContainer } from '../../shared/ui'
 import { ProfileForm } from './ProfileForm'
+import { ServicesList } from './ServicesList'
 
 export const ProfilePage = () => {
 	const dispatch = useAppDispatch()
@@ -21,31 +22,36 @@ export const ProfilePage = () => {
 	const loadError = load.status === 'rejected' ? load.error : null
 
 	return (
-		<FormContainer>
-			<div className='flex flex-col gap-3'>
-				<h1>Профиль мастера</h1>
-				<p className='text-ink-muted'>
-					Коротко о вас и вашей практике — это увидят клиенты.
-				</p>
-			</div>
-			{loading && (
-				<p role='status' className='text-caption text-ink-muted'>
-					Загружаем профиль…
-				</p>
-			)}
-			{loadError && (
-				<div role='alert' className='flex flex-col gap-3'>
-					<p>{loadError.message}</p>
-					<Button
-						onClick={() => {
-							void dispatch(loadProfileThunk())
-						}}
-					>
-						Повторить
-					</Button>
+		<div className='flex w-full flex-col items-start gap-12 phone:flex-row'>
+			<FormContainer>
+				<div className='flex flex-col gap-3'>
+					<h1>Профиль мастера</h1>
+					<p className='text-ink-muted'>
+						Коротко о вас и вашей практике — это увидят клиенты.
+					</p>
 				</div>
+				{loading && (
+					<p role='status' className='text-caption text-ink-muted'>
+						Загружаем профиль…
+					</p>
+				)}
+				{loadError && (
+					<div role='alert' className='flex flex-col gap-3'>
+						<p>{loadError.message}</p>
+						<Button
+							onClick={() => {
+								void dispatch(loadProfileThunk())
+							}}
+						>
+							Повторить
+						</Button>
+					</div>
+				)}
+				{!loading && <ProfileForm key={profile?.id ?? 'new'} profile={profile} />}
+			</FormContainer>
+			{(profile || load.status === 'fulfilled') && (
+				<ServicesList services={profile?.services ?? []} />
 			)}
-			{!loading && <ProfileForm key={profile?.id ?? 'new'} profile={profile} />}
-		</FormContainer>
+		</div>
 	)
 }
