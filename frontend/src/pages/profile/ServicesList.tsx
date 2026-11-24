@@ -1,6 +1,7 @@
 import type { Service } from "../../entities/profile";
+import { ServiceForm } from './ServiceForm';
 
-export const ServicesList = ({ services }: { services: Service[] }) => {
+export const ServicesList = ({ services, profileId }: { services: Service[]; profileId?: string }) => {
     return (
         <section
             aria-labelledby="services-heading"
@@ -31,6 +32,7 @@ export const ServicesList = ({ services }: { services: Service[] }) => {
                     ))}
                 </ul>
             )}
+            {profileId ? <ServiceForm key={profileId} profileId={profileId} /> : <p className="text-caption text-ink-muted">Чтобы добавить услугу, сначала сохраните профиль.</p>}
         </section>
     );
 };

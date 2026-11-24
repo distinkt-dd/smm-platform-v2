@@ -50,7 +50,7 @@ export const ProfilePage = () => {
 				{!loading && <ProfileForm key={profile?.id ?? 'new'} profile={profile} />}
 			</FormContainer>
 			{(profile || load.status === 'fulfilled') && (
-				<ServicesList services={profile?.services ?? []} />
+				<ServicesList services={profile?.services ?? []} profileId={profile?.id} />
 			)}
 		</div>
 	)
