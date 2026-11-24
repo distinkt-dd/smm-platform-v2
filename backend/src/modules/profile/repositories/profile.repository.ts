@@ -28,6 +28,10 @@ export class ProfileRepository {
     }
 
     async putProfileByUserId(userId: string, dto: ProfileDto): Promise<ProfilePublic | null> {
+        // Пустая строка (и `null`) очищают описание: в базе остаётся `null`.
+        // Отсутствующее поле — «не менять»: иначе клиент, который ещё не
+        // передаёт `about`, стирал бы описание при каждом сохранении.
+        const about = dto.about?.trim() ? dto.about.trim() : null;
 
         await this.prismaService.masterProfile.upsert({
             where: {
@@ -37,13 +41,13 @@ export class ProfileRepository {
                 userId,
                 displayName: dto.displayName,
                 specialization: dto.specialization,
-                about: dto.about
+                about
 
             },
             update: {
                 displayName: dto.displayName,
                 specialization: dto.specialization,
-                about: dto.about
+                about: dto.about === undefined ? undefined : about
             },
         })
 

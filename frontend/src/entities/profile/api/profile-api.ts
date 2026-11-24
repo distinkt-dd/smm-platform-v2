@@ -1,10 +1,12 @@
 import {
 	apiRequest,
+	ApiHttpError,
 	requireResponse,
 	type JsonValue,
 } from '../../../shared/api/api'
 import { PROFILE } from '../../../shared/api/endpoints'
 import { validate, ValidationError } from '../../../shared/lib/validate'
+import { toProfileFieldErrors } from './profile-messages'
 import { profileSchema } from './profile-schema'
 import type {
 	GetProfileResponse,
@@ -26,8 +28,8 @@ export function getProfile(): Promise<GetProfileResponse> {
 
 /**
  * `PUT /me/profile`. Backend сохраняет через `upsert`, поэтому первый вызов
- * создаёт профиль. Пустое поле `about` не отправляем: `PUT` без него
- * и создаёт профиль без описания.
+ * создаёт профиль. `about` отправляем всегда: пустая строка очищает описание,
+ * а отсутствие поля backend оставил бы без изменений.
  */
 export async function saveProfile(
 	data: ProfileRequest,
@@ -37,12 +39,23 @@ export async function saveProfile(
 	const body: JsonValue = {
 		displayName: result.data.displayName,
 		specialization: result.data.specialization,
+		about: result.data.about ?? '',
 	}
-	if (result.data.about) body.about = result.data.about
-	return requireResponse(
-		apiRequest<SaveProfileResponse>(PROFILE, {
-			method: 'PUT',
-			body,
-		}),
-	)
+	try {
+		return await requireResponse(
+			apiRequest<SaveProfileResponse>(PROFILE, {
+				method: 'PUT',
+				body,
+			}),
+		)
+	} catch (error) {
+		// `ValidationPipe` перечисляет сообщения без имён полей. Известные тексты
+		// раскладываем по полям, чтобы ошибка `400` была рядом с ними; иначе
+		// оставляем HTTP-ошибку с общим сообщением.
+		if (error instanceof ApiHttpError && error.status === 400) {
+			const fields = toProfileFieldErrors(error.messages)
+			if (fields) throw new ValidationError(fields)
+		}
+		throw error
+	}
 }

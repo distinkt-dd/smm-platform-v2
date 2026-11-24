@@ -20,7 +20,10 @@ export type Profile = {
 	services: Service[]
 }
 
-/** Тело `PUT /me/profile`: `about` необязателен. */
+/**
+ * Тело `PUT /me/profile`. `about` необязателен: пустая строка очищает
+ * описание, а отсутствие поля оставляет сохранённое значение без изменений.
+ */
 export type ProfileRequest = {
 	displayName: string
 	specialization: string

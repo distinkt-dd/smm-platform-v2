@@ -1,41 +1,44 @@
 import isLength from 'validator/lib/isLength'
 import { z } from 'zod'
+import { profileMessages } from './profile-messages'
 
-// Повторяет ограничения ProfileDto: сообщения совпадают с backend,
-// чтобы форма показывала одинаковый текст при локальной и серверной проверке.
+// Повторяет ограничения ProfileDto: сообщения берутся из одного места
+// с разбором серверных ошибок, чтобы форма показывала одинаковый текст
+// при локальной и серверной проверке.
 export const profileSchema = z.object({
 	displayName: z
 		.string()
 		.trim()
 		.refine(
 			value => isLength(value, { min: 3 }),
-			'Имя пользователя не должно быть меньше 3 символов',
+			profileMessages.displayNameMin,
 		)
 		.refine(
 			value => isLength(value, { max: 50 }),
-			'Имя пользователя не должно превышать 50 символов',
+			profileMessages.displayNameMax,
 		),
 	specialization: z
 		.string()
 		.trim()
 		.refine(
 			value => isLength(value, { min: 3 }),
-			'Специализация не должно быть меньше 3 символов',
+			profileMessages.specializationMin,
 		)
 		.refine(
 			value => isLength(value, { max: 50 }),
-			'Специализация не должна превышать 50 символов',
+			profileMessages.specializationMax,
 		),
 	about: z
 		.string()
 		.trim()
+		// Пустое описание — не ошибка: так форма очищает описание.
 		.refine(
 			value => value === '' || isLength(value, { min: 10 }),
-			'О себе не должно быть меньше 10 символов',
+			profileMessages.aboutMin,
 		)
 		.refine(
 			value => isLength(value, { max: 250 }),
-			'О себе не должно превышать 250 символов',
+			profileMessages.aboutMax,
 		)
 		.optional(),
 })
