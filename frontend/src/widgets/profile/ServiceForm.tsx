@@ -12,7 +12,7 @@ export const ServiceForm = ({ profileId }: { profileId: string }) => {
         (state) => state.profile.requests.createService,
     );
     const savingProfile = useAppSelector(
-        (state) => state.profile.requests.save.status === "pending",
+        (state) => state.profile.requests.save.status === "pending" || state.profile.requests.changeService.status === "pending",
     );
     const [values, setValues] = useState({ title: "", description: "" });
     const [error, setError] = useState<ProfileRequestError | null>(null);

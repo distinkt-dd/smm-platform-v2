@@ -33,7 +33,9 @@ export const ProfileForm = ({ profile }: { profile: Profile | null }) => {
     const notCreated = useAppSelector((state) => state.profile.notCreated);
     const save = useAppSelector((state) => state.profile.requests.save);
     const creatingService = useAppSelector(
-        (state) => state.profile.requests.createService.status === "pending",
+        (state) =>
+            state.profile.requests.createService.status === "pending" ||
+            state.profile.requests.changeService.status === "pending",
     );
     const draft = useAppSelector((state) => state.profile.draft);
     const ownerId = useAppSelector((state) => state.auth.user?.id);

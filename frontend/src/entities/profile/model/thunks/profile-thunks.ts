@@ -2,7 +2,13 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { ApiHttpError, ApiNetworkError } from "../../../../shared/api/api";
 import { ValidationError } from "../../../../shared/lib/validate";
 import { getProfile, saveProfile } from "../../api/profile-api";
-import { createService, type CreateServiceRequest } from "../../../services";
+import {
+    createService,
+    updateService,
+    deleteService,
+    type CreateServiceRequest,
+    type UpdateServiceRequest,
+} from "../../../services";
 import type { Service } from "../../api/types";
 import type {
     GetProfileResponse,
@@ -73,6 +79,27 @@ export const createServiceThunk = createProfileThunk<
 >("profile/createService", async ({ values }, { rejectWithValue }) => {
     try {
         return await createService(values);
+    } catch (error) {
+        return rejectWithValue(toRequestError(error));
+    }
+});
+
+export const updateServiceThunk = createProfileThunk<
+    Service,
+    { profileId: string; id: string; values: UpdateServiceRequest }
+>("profile/updateService", async ({ id, values }, { rejectWithValue }) => {
+    try {
+        return await updateService(id, values);
+    } catch (error) {
+        return rejectWithValue(toRequestError(error));
+    }
+});
+export const deleteServiceThunk = createProfileThunk<
+    void,
+    { profileId: string; id: string }
+>("profile/deleteService", async ({ id }, { rejectWithValue }) => {
+    try {
+        await deleteService(id);
     } catch (error) {
         return rejectWithValue(toRequestError(error));
     }

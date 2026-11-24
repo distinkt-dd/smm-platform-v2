@@ -4,6 +4,8 @@ import {
     loadProfileThunk,
     saveProfileThunk,
     createServiceThunk,
+    updateServiceThunk,
+    deleteServiceThunk,
     type ProfileRequestError,
 } from "./thunks/profile-thunks";
 
@@ -36,6 +38,7 @@ export const createInitialProfileState = () => ({
         load: initialRequest(),
         save: initialRequest(),
         createService: initialRequest(),
+        changeService: initialRequest(),
     },
 });
 
@@ -70,6 +73,85 @@ const profileSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            .addCase(updateServiceThunk.pending, (state, action) => {
+                state.requests.changeService = {
+                    status: "pending",
+                    error: null,
+                    requestId: action.meta.requestId,
+                };
+            })
+            .addCase(deleteServiceThunk.pending, (state, action) => {
+                state.requests.changeService = {
+                    status: "pending",
+                    error: null,
+                    requestId: action.meta.requestId,
+                };
+            })
+            .addCase(updateServiceThunk.fulfilled, (state, action) => {
+                if (
+                    state.requests.changeService.requestId !==
+                    action.meta.requestId
+                )
+                    return;
+                if (state.profile?.id === action.meta.arg.profileId) {
+                    const index = state.profile.services.findIndex(
+                        (item) => item.id === action.meta.arg.id,
+                    );
+                    if (index !== -1)
+                        state.profile.services[index] = action.payload;
+                }
+                state.requests.changeService = {
+                    status: "fulfilled",
+                    error: null,
+                    requestId: null,
+                };
+            })
+            .addCase(deleteServiceThunk.fulfilled, (state, action) => {
+                if (
+                    state.requests.changeService.requestId !==
+                    action.meta.requestId
+                )
+                    return;
+                if (state.profile?.id === action.meta.arg.profileId)
+                    state.profile.services = state.profile.services.filter(
+                        (item) => item.id !== action.meta.arg.id,
+                    );
+                state.requests.changeService = {
+                    status: "fulfilled",
+                    error: null,
+                    requestId: null,
+                };
+            })
+            .addCase(updateServiceThunk.rejected, (state, action) => {
+                if (
+                    state.requests.changeService.requestId !==
+                    action.meta.requestId
+                )
+                    return;
+                state.requests.changeService = {
+                    status: "rejected",
+                    error: action.payload ?? {
+                        kind: "unknown",
+                        message: action.error.message ?? "Неизвестная ошибка",
+                    },
+                    requestId: null,
+                };
+            })
+            .addCase(deleteServiceThunk.rejected, (state, action) => {
+                if (
+                    state.requests.changeService.requestId !==
+                    action.meta.requestId
+                )
+                    return;
+                state.requests.changeService = {
+                    status: "rejected",
+                    error: action.payload ?? {
+                        kind: "unknown",
+                        message: action.error.message ?? "Неизвестная ошибка",
+                    },
+                    requestId: null,
+                };
+            })
             .addCase(createServiceThunk.pending, (state, action) => {
                 state.requests.createService = {
                     status: "pending",
