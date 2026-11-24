@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from "../../shared/store";
 import { ConfirmationDialog } from "../../shared/ui";
 import { EditServiceForm } from "./EditServiceForm";
 import { ServiceForm } from "./ServiceForm";
+import { readServiceDrafts, writeServiceDraft } from "./service-drafts";
 
 export const ServicesList = ({
     services,
@@ -17,12 +18,13 @@ export const ServicesList = ({
     profileId?: string;
 }) => {
     const dispatch = useAppDispatch();
+    const ownerId = useAppSelector((state) => state.auth.user?.id);
     const requests = useAppSelector((state) => state.profile.requests);
     const blocked =
         requests.save.status === "pending" ||
         requests.createService.status === "pending" ||
         requests.changeService.status === "pending";
-    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editingId, setEditingId] = useState<string | null>(() => profileId ? readServiceDrafts(ownerId, profileId).activeEdit ?? null : null);
     const [deleting, setDeleting] = useState<Service | null>(null);
     const [error, setError] = useState<ProfileRequestError | null>(null);
 
@@ -32,7 +34,10 @@ export const ServicesList = ({
         const result = await dispatch(
             deleteServiceThunk({ id: deleting.id, profileId }),
         );
-        if (deleteServiceThunk.fulfilled.match(result)) setDeleting(null);
+        if (deleteServiceThunk.fulfilled.match(result)) {
+            writeServiceDraft(ownerId, profileId, deleting.id, null);
+            setDeleting(null);
+        }
         else
             setError(
                 result.payload ?? {
@@ -54,7 +59,7 @@ export const ServicesList = ({
                     практику при создании контента.
                 </p>
             ) : (
-                <ul className="divide-y divide-line border-y border-line phone:max-h-[50vh] phone:overflow-y-auto">
+                <ul className="divide-y divide-line border-y border-line phone:max-h-[50vh] phone:overflow-y-auto phone:px-2">
                     {services.map((service) => (
                         <li key={service.id} className="py-4">
                             {editingId === service.id && profileId ? (

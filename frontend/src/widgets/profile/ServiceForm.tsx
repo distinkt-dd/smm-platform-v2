@@ -5,16 +5,18 @@ import {
 } from "../../entities/profile";
 import { useAppDispatch, useAppSelector } from "../../shared/store";
 import { Button, Input, Textarea } from "../../shared/ui";
+import { readServiceDrafts, writeServiceDraft } from "./service-drafts";
 
 export const ServiceForm = ({ profileId }: { profileId: string }) => {
     const dispatch = useAppDispatch();
+    const ownerId = useAppSelector((state) => state.auth.user?.id);
     const create = useAppSelector(
         (state) => state.profile.requests.createService,
     );
     const savingProfile = useAppSelector(
         (state) => state.profile.requests.save.status === "pending" || state.profile.requests.changeService.status === "pending",
     );
-    const [values, setValues] = useState({ title: "", description: "" });
+    const [values, setValues] = useState(() => readServiceDrafts(ownerId, profileId).create ?? { title: "", description: "" });
     const [error, setError] = useState<ProfileRequestError | null>(null);
     const [created, setCreated] = useState(false);
     const pending = create.status === "pending";
@@ -23,7 +25,9 @@ export const ServiceForm = ({ profileId }: { profileId: string }) => {
         error?.kind === "validation" ? fields[""] : error?.message;
 
     const update = (field: "title" | "description", value: string) => {
-        setValues((previous) => ({ ...previous, [field]: value }));
+        const next = { ...values, [field]: value };
+        setValues(next);
+        writeServiceDraft(ownerId, profileId, null, next);
         setCreated(false);
         setError((previous) => {
             if (previous?.kind !== "validation") return null;
@@ -45,6 +49,7 @@ export const ServiceForm = ({ profileId }: { profileId: string }) => {
             createServiceThunk({ profileId, values }),
         );
         if (createServiceThunk.fulfilled.match(result)) {
+            writeServiceDraft(ownerId, profileId, null, null);
             setValues({ title: "", description: "" });
             setCreated(true);
         } else

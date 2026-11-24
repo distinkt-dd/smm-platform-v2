@@ -6,6 +6,7 @@ import {
 } from "../../entities/profile";
 import { useAppDispatch, useAppSelector } from "../../shared/store";
 import { Button, Input, Textarea } from "../../shared/ui";
+import { readServiceDrafts, writeServiceDraft } from "./service-drafts";
 
 export function EditServiceForm({
     service,
@@ -17,20 +18,26 @@ export function EditServiceForm({
     onClose: () => void;
 }) {
     const dispatch = useAppDispatch();
+    const ownerId = useAppSelector((state) => state.auth.user?.id);
     const requests = useAppSelector((state) => state.profile.requests);
     const pending = requests.changeService.status === "pending";
     const blocked =
         pending ||
         requests.save.status === "pending" ||
         requests.createService.status === "pending";
-    const [values, setValues] = useState({
-        title: service.title,
-        description: service.description ?? "",
-    });
+    const [values, setValues] = useState(
+        () =>
+            readServiceDrafts(ownerId, profileId).edits[service.id] ?? {
+                title: service.title,
+                description: service.description ?? "",
+            },
+    );
     const [error, setError] = useState<ProfileRequestError | null>(null);
     const fields = error?.kind === "validation" ? error.fields : {};
     const change = (field: "title" | "description", value: string) => {
-        setValues((previous) => ({ ...previous, [field]: value }));
+        const next = { ...values, [field]: value };
+        setValues(next);
+        writeServiceDraft(ownerId, profileId, service.id, next);
         setError((previous) => {
             if (previous?.kind !== "validation") return null;
             const next = { ...previous.fields };
@@ -49,6 +56,7 @@ export function EditServiceForm({
         if (values.description !== (service.description ?? ""))
             updates.description = values.description || null;
         if (Object.keys(updates).length === 0) {
+            writeServiceDraft(ownerId, profileId, service.id, null);
             onClose();
             return;
         }
@@ -56,8 +64,10 @@ export function EditServiceForm({
         const result = await dispatch(
             updateServiceThunk({ profileId, id: service.id, values: updates }),
         );
-        if (updateServiceThunk.fulfilled.match(result)) onClose();
-        else
+        if (updateServiceThunk.fulfilled.match(result)) {
+            writeServiceDraft(ownerId, profileId, service.id, null);
+            onClose();
+        } else
             setError(
                 result.payload ?? {
                     kind: "unknown",
@@ -91,7 +101,10 @@ export function EditServiceForm({
                 <button
                     type="button"
                     disabled={pending}
-                    onClick={onClose}
+                    onClick={() => {
+                        writeServiceDraft(ownerId, profileId, service.id, null);
+                        onClose();
+                    }}
                     className="min-h-12 rounded-control border border-line px-5 font-semibold disabled:opacity-50"
                 >
                     Отмена
