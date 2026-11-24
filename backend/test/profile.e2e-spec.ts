@@ -14,7 +14,7 @@ import { PrismaService } from '../src/modules/prisma/prisma.service.js';
 import { findFreePort } from './support/free-port.js';
 
 /**
- * Сквозной контракт CRUD услуг и подтверждённых фактов профиля (issue #19).
+ * Сквозной контракт профиля (issue #26), его услуг и фактов (issue #19).
  *
  * Тест поднимает приложение целиком с настоящим PostgreSQL
  * (`embedded-postgres` во временном каталоге), поэтому проверяет то, что не
@@ -69,7 +69,7 @@ function applyMigrations(databaseUrl: string): void {
   );
 }
 
-describe('Услуги и факты профиля (e2e)', () => {
+describe('Профиль, его услуги и факты (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let postgres: EmbeddedPostgres;
@@ -175,6 +175,157 @@ describe('Услуги и факты профиля (e2e)', () => {
 
     return { userId, token, profileId };
   }
+
+  describe('Профиль', () => {
+    const ABOUT = 'Делаю аккуратный макияж и уход';
+
+    it('отвечает 404 до создания профиля', async () => {
+      const { token } = await registerAndLogin();
+
+      const response = await request(app.getHttpServer())
+        .get('/me/profile')
+        .set('Authorization', bearer(token))
+        .expect(404);
+
+      expect(response.body.message).toBe(PROFILE_NOT_FOUND);
+    });
+
+    it('создаёт профиль и отдаёт его без описания', async () => {
+      const { userId, token } = await registerAndLogin();
+
+      const created = await request(app.getHttpServer())
+        .put('/me/profile')
+        .set('Authorization', bearer(token))
+        .send(PROFILE_DATA)
+        .expect(200);
+
+      expect(created.body).toEqual({
+        id: expect.any(String),
+        displayName: 'Анна',
+        specialization: 'Стилист',
+        about: null,
+        confirmedFacts: [],
+        services: [],
+      });
+
+      const stored = await prisma.masterProfile.findUnique({
+        where: { userId },
+      });
+      expect(stored).toMatchObject({
+        displayName: 'Анна',
+        specialization: 'Стилист',
+        about: null,
+      });
+
+      const read = await request(app.getHttpServer())
+        .get('/me/profile')
+        .set('Authorization', bearer(token))
+        .expect(200);
+      expect(read.body).toEqual(created.body);
+    });
+
+    it('сохраняет, очищает и не стирает описание при пропуске поля', async () => {
+      const { userId, token } = await registerAndLogin();
+      const auth = bearer(token);
+
+      const withAbout = await request(app.getHttpServer())
+        .put('/me/profile')
+        .set('Authorization', auth)
+        .send({ ...PROFILE_DATA, about: ABOUT })
+        .expect(200);
+      expect(withAbout.body.about).toBe(ABOUT);
+
+      // Поле не передано — описание остаётся прежним.
+      const skipped = await request(app.getHttpServer())
+        .put('/me/profile')
+        .set('Authorization', auth)
+        .send(PROFILE_DATA)
+        .expect(200);
+      expect(skipped.body.about).toBe(ABOUT);
+
+      // Пустая строка — явная очистка.
+      const cleared = await request(app.getHttpServer())
+        .put('/me/profile')
+        .set('Authorization', auth)
+        .send({ ...PROFILE_DATA, about: '' })
+        .expect(200);
+      expect(cleared.body.about).toBeNull();
+
+      expect(
+        await prisma.masterProfile.findUnique({ where: { userId } }),
+      ).toMatchObject({ about: null });
+
+      await request(app.getHttpServer())
+        .put('/me/profile')
+        .set('Authorization', auth)
+        .send({ ...PROFILE_DATA, about: ABOUT })
+        .expect(200);
+
+      // `null` в поле — та же очистка, что и пустая строка.
+      const clearedWithNull = await request(app.getHttpServer())
+        .put('/me/profile')
+        .set('Authorization', auth)
+        .send({ ...PROFILE_DATA, about: null })
+        .expect(200);
+      expect(clearedWithNull.body.about).toBeNull();
+    });
+
+    it('обрезает пробелы и отклоняет невалидное описание, не меняя сохранённое', async () => {
+      const { token } = await registerAndLogin();
+      const auth = bearer(token);
+
+      const trimmed = await request(app.getHttpServer())
+        .put('/me/profile')
+        .set('Authorization', auth)
+        .send({ ...PROFILE_DATA, about: `  ${ABOUT}  ` })
+        .expect(200);
+      expect(trimmed.body.about).toBe(ABOUT);
+
+      const invalidCases = [
+        {
+          body: { ...PROFILE_DATA, about: 'коротко' },
+          message: 'О себе не должно быть меньше 10 символов',
+        },
+        {
+          body: { ...PROFILE_DATA, about: 'я'.repeat(251) },
+          message: 'О себе не должно превышать 250 символов',
+        },
+        {
+          body: { ...PROFILE_DATA, about: 123 },
+          message: 'О себе должно быть строкой',
+        },
+        {
+          body: { displayName: 'Ан', specialization: 'Стилист' },
+          message: 'Имя пользователя не должно быть меньше 3 символов',
+        },
+      ];
+
+      for (const { body, message } of invalidCases) {
+        const response = await request(app.getHttpServer())
+          .put('/me/profile')
+          .set('Authorization', auth)
+          .send(body)
+          .expect(400);
+        // Тексты важны для frontend: по ним ошибка `400` раскладывается по полям.
+        expect(response.body.message).toContain(message);
+      }
+
+      const stored = await request(app.getHttpServer())
+        .get('/me/profile')
+        .set('Authorization', auth)
+        .expect(200);
+      expect(stored.body.about).toBe(ABOUT);
+    });
+
+    it('не открывает маршрут без токена', async () => {
+      await request(app.getHttpServer()).get('/me/profile').expect(401);
+
+      await request(app.getHttpServer())
+        .put('/me/profile')
+        .send(PROFILE_DATA)
+        .expect(401);
+    });
+  });
 
   describe('Услуги', () => {
     it('создаёт, изменяет и удаляет услугу', async () => {
