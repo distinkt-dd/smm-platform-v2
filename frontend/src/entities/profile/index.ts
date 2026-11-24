@@ -18,6 +18,9 @@ export {
 } from "./model/profile-slice";
 export type { ProfileDraft } from "./model/profile-slice";
 export {
+    createServiceThunk,
+    updateServiceThunk,
+    deleteServiceThunk,
     loadProfileThunk,
     saveProfileThunk,
 } from "./model/thunks/profile-thunks";
