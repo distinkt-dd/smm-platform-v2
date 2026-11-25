@@ -6,6 +6,31 @@ Backend и frontend — независимые npm-проекты. Исходн�
 
 Для совместного запуска в Docker используются `compose.yaml`, `backend/Dockerfile` и `frontend/Dockerfile`; nginx использует `frontend/nginx.conf` для SPA-маршрутов и возвращает 404 для отсутствующих файлов в `/assets/`; сервис `db` запускает PostgreSQL с именованным томом и проверкой готовности. Команды и ожидаемый результат описаны в [режиме локальных проверок](local-development.md).
 
+## Карта модулей
+
+Навигация по коду — [Graphify](graphify.md): граф `graphify-out/graph.json` показывает файлы и связи, а контракты, точки входа и проверки остаются в этом документе. Диаграмма задаёт состав модулей и их зависимости; таблица — маршруты, точки входа в приложениях, проверки и ссылки на остальную документацию.
+
+```mermaid
+flowchart TD
+    Auth["auth — регистрация, вход, сессия"]
+    Profile["profile — профиль мастера"]
+    Services["services — услуги (сабмодуль profile)"]
+    Facts["facts — подтверждённые факты (сабмодуль profile)"]
+
+    Auth --> Profile
+    Profile --> Services
+    Profile --> Facts
+```
+
+`auth` даёт сессию для защищённых маршрутов `profile`; `services` и `facts` — сабмодули `profile`, отдельных ресурсов верхнего уровня у них нет. На frontend те же границы: `frontend/src/entities/auth`, `frontend/src/entities/profile` (включая API фактов) и `frontend/src/entities/services`; страница `/profile` собирает виджеты из `frontend/src/widgets/profile`. Инфраструктурные `PrismaModule`, `TokenModule` и `HealthModule` пользовательских модулей не образуют и описаны в таблице ниже.
+
+| Модуль | API | Backend: точки входа | Frontend: точки входа | Зависимости | Проверки | Документация |
+| --- | --- | --- | --- | --- | --- | --- |
+| `auth` | `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me` | [auth.controller.ts](../backend/src/modules/auth/auth.controller.ts), [auth.module.ts](../backend/src/modules/auth/auth.module.ts), [jwt.strategy.ts](../backend/src/modules/auth/strategies/jwt.strategy.ts), [token.module.ts](../backend/src/modules/token/token.module.ts) | [entities/auth](../frontend/src/entities/auth), [widgets/auth-form](../frontend/src/widgets/auth-form), [pages/login](../frontend/src/pages/login), [pages/register](../frontend/src/pages/register) | `PrismaModule`, `TokenModule` (JWT), `argon2`, `class-validator` | `npm test` — [auth.service.spec.ts](../backend/src/modules/auth/auth.service.spec.ts), [auth.repository.spec.ts](../backend/src/modules/auth/repositories/auth.repository.spec.ts), [registration-user.dto.spec.ts](../backend/src/modules/auth/dto/registration-user.dto.spec.ts); `npm run test:e2e` — [auth.e2e-spec.ts](../backend/test/auth.e2e-spec.ts); frontend — [тесты](../frontend/tests) | [контракт](#модули-backend), [решения по авторизации](architecture.md#архитектурные-решения), [состояния интерфейса](design-system.md#состояния-и-смысл-действий) |
+| `profile` | `GET /me/profile`, `PUT /me/profile` | [profile.controller.ts](../backend/src/modules/profile/profile.controller.ts), [profile.module.ts](../backend/src/modules/profile/profile.module.ts) | [entities/profile](../frontend/src/entities/profile), [ProfileForm.tsx](../frontend/src/widgets/profile/ProfileForm.tsx), [pages/profile](../frontend/src/pages/profile) | `PrismaModule`, JWT-защита из `AuthModule`, `class-validator` | `npm test` — [profile.service.spec.ts](../backend/src/modules/profile/profile.service.spec.ts), [profile.dto.spec.ts](../backend/src/modules/profile/dto/profile.dto.spec.ts); `npm run test:e2e` — раздел «Профиль» в [profile.e2e-spec.ts](../backend/test/profile.e2e-spec.ts); frontend — [тесты](../frontend/tests) | [контракт](#модули-backend), [решения о `PUT` и черновике](architecture.md#архитектурные-решения) |
+| `services` | `POST /me/profile/services`, `PATCH /me/profile/services/:id`, `DELETE /me/profile/services/:id` | [services.module.ts](../backend/src/modules/profile/services/services.module.ts), [services.controller.ts](../backend/src/modules/profile/services/services.controller.ts) | [entities/services](../frontend/src/entities/services), [ServicesList.tsx](../frontend/src/widgets/profile/ServicesList.tsx), [service-drafts.ts](../frontend/src/widgets/profile/service-drafts.ts) | `profile` (владение по `masterProfileId`), JWT-защита | `npm test` — [services.service.spec.ts](../backend/src/modules/profile/services/services.service.spec.ts), [services.controller.spec.ts](../backend/src/modules/profile/services/services.controller.spec.ts); `npm run test:e2e` — раздел «Услуги» в [profile.e2e-spec.ts](../backend/test/profile.e2e-spec.ts); frontend — [тесты](../frontend/tests) | [контракт](#модули-backend), [формы, диалоги и состояния](design-system.md#состояния-и-смысл-действий) |
+| `facts` | `POST /me/profile/facts`, `PATCH /me/profile/facts/:id`, `DELETE /me/profile/facts/:id` | [facts.module.ts](../backend/src/modules/profile/facts/facts.module.ts), [facts.controller.ts](../backend/src/modules/profile/facts/facts.controller.ts) | [fact-api.ts](../frontend/src/entities/profile/api/fact-api.ts), [FactsList.tsx](../frontend/src/widgets/profile/FactsList.tsx), [fact-drafts.ts](../frontend/src/widgets/profile/fact-drafts.ts) | `profile` (владение по `masterProfileId`), JWT-защита | `npm test` — [facts.service.spec.ts](../backend/src/modules/profile/facts/facts.service.spec.ts), [facts.controller.spec.ts](../backend/src/modules/profile/facts/facts.controller.spec.ts); `npm run test:e2e` — раздел «Факты» в [profile.e2e-spec.ts](../backend/test/profile.e2e-spec.ts); frontend — [тесты](../frontend/tests) | [контракт](#модули-backend), [формы, диалоги и состояния](design-system.md#состояния-и-смысл-действий) |
+
 ## Backend
 
 - Точка входа: `backend/src/main.ts`; стартовый модуль: `backend/src/app.module.ts`.
