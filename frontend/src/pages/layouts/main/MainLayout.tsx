@@ -1,7 +1,7 @@
 import { Outlet } from "react-router";
+import { useAppSelector } from "../../../shared/store";
 import { Header } from "../../../widgets/header";
 import { Navigation } from "../../../widgets/navigation/Navigation";
-import { useAppSelector } from "../../../shared/store";
 
 export const MainLayout = () => {
     const user = useAppSelector((state) => state.auth.user);
